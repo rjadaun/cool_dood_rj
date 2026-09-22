@@ -29,6 +29,7 @@ export default async function AboutPage() {
 
   return (
     <>
+      <div>Test message</div>
       <PageHero
         label="About the Studio"
         title={page?.heading || "Photography with a refined eye."}
