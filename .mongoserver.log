@@ -1,0 +1,5 @@
+[db] starting MongoDB (single-node replica set) on localhost:27017…
+[db] (first run downloads the mongod binary — this can take a minute)
+[db] URI: mongodb://127.0.0.1:27017/lumiere?replicaSet=rs0
+[db] READY — set DATABASE_URL to:
+     mongodb://127.0.0.1:27017/lumiere?replicaSet=rs0

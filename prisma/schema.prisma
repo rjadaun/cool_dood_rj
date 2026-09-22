@@ -1,0 +1,563 @@
+// Lumière Studio — data model (MongoDB)
+// Run `npm run db:push` then `npm run db:seed`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── Enums ───────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Transition {
+  FADE
+  CROSSFADE
+  KEN_BURNS
+  SLOW_ZOOM
+}
+
+enum FocalPosition {
+  CENTER
+  TOP
+  BOTTOM
+  LEFT
+  RIGHT
+  TOP_LEFT
+  TOP_RIGHT
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+}
+
+enum GalleryLayout {
+  FULL_WIDTH
+  TWO_COLUMN
+  THREE_COLUMN
+  MIXED
+  PORTRAIT_LANDSCAPE
+}
+
+enum AspectPreference {
+  ORIGINAL
+  PORTRAIT
+  LANDSCAPE
+  SQUARE
+  PANORAMIC
+}
+
+enum InquiryStatus {
+  NEW
+  READ
+  CONTACTED
+  ARCHIVED
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  YOUTUBE
+  BEHANCE
+  PINTEREST
+  LINKEDIN
+  FACEBOOK
+  TIKTOK
+  X
+}
+
+enum HomeSectionKey {
+  HERO
+  ABOUT
+  STATS
+  CATEGORIES
+  FEATURED_WORK
+  PROCESS
+  SERVICES
+  SELECTED_WORK
+  CLIENTS
+  TESTIMONIALS
+  AWARDS
+  PACKAGES
+  SOCIAL
+  NEWSLETTER
+  CTA
+}
+
+// ─────────────────────────── Auth / users ───────────────────────────
+
+model User {
+  id           String       @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  email        String       @unique
+  passwordHash String
+  role         Role         @default(EDITOR)
+  status       UserStatus   @default(ACTIVE)
+  avatarId     String?      @db.ObjectId
+  avatar       Media?       @relation("UserAvatar", fields: [avatarId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  lastLoginAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  resetTokens  PasswordResetToken[]
+  activityLogs ActivityLog[]
+  uploads      Media[]      @relation("MediaUploader")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// ─────────────────────────── Media library ───────────────────────────
+
+model Media {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  url          String
+  key          String   @unique // storage key / path / public_id
+  filename     String
+  mimeType     String
+  size         Int // bytes
+  width        Int?
+  height       Int?
+  blurDataUrl  String?
+  altText      String?
+  caption      String?
+  folder       String   @default("uploads")
+  uploadedById String?  @db.ObjectId
+  uploadedBy   User?    @relation("MediaUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  heroSlides       HeroSlide[]
+  categoryCovers   Category[]         @relation("CategoryCover")
+  projectCovers    PortfolioProject[] @relation("ProjectCover")
+  projectOg        PortfolioProject[] @relation("ProjectOg")
+  portfolioImages  PortfolioImage[]
+  serviceImages    Service[]
+  clientLogos      Client[]           @relation("ClientLogo")
+  clientLogosDark  Client[]           @relation("ClientLogoDark")
+  testimonialImgs  Testimonial[]
+  awardLogos       Award[]
+  blogCovers       BlogPost[]
+  userAvatars      User[]             @relation("UserAvatar")
+  pageImages       Page[]             @relation("PageImage")
+
+  @@index([folder])
+}
+
+// ─────────────────────────── Hero slider ───────────────────────────
+
+model HeroSlide {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  label           String?
+  title           String
+  subtitle        String?
+  description     String?
+  ctaText         String?
+  ctaUrl          String?
+  ctaSecondary    String?
+  ctaSecondaryUrl String?
+  imageId         String?       @db.ObjectId
+  image           Media?        @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  overlay         Int           @default(45)
+  focal           FocalPosition @default(CENTER)
+  transition      Transition    @default(KEN_BURNS)
+  durationMs      Int           @default(6000)
+  sortOrder       Int           @default(0)
+  status          PublishStatus @default(PUBLISHED)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status, sortOrder])
+}
+
+// ─────────────────────────── Categories ───────────────────────────
+
+model Category {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  slug        String        @unique
+  description String?
+  coverId     String?       @db.ObjectId
+  cover       Media?        @relation("CategoryCover", fields: [coverId], references: [id], onDelete: SetNull)
+  sortOrder   Int           @default(0)
+  status      PublishStatus @default(PUBLISHED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  projects PortfolioProject[]
+
+  @@index([status, sortOrder])
+}
+
+// ─────────────────────────── Portfolio ───────────────────────────
+
+model PortfolioProject {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  slug           String         @unique
+  description    String?
+  categoryId     String?        @db.ObjectId
+  category       Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  clientId       String?        @db.ObjectId
+  client         Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  location       String?
+  year           Int?
+  coverId        String?        @db.ObjectId
+  cover          Media?         @relation("ProjectCover", fields: [coverId], references: [id], onDelete: SetNull)
+  credits        String?
+  services       String[]       @default([])
+  tags           String[]       @default([])
+  galleryLayout  GalleryLayout  @default(MIXED)
+  featured       Boolean        @default(false)
+  status         PublishStatus  @default(DRAFT)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  ogImageId      String?        @db.ObjectId
+  ogImage        Media?         @relation("ProjectOg", fields: [ogImageId], references: [id], onDelete: SetNull)
+  sortOrder      Int            @default(0)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  images PortfolioImage[]
+
+  @@index([status, featured])
+  @@index([categoryId])
+}
+
+model PortfolioImage {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  projectId String           @db.ObjectId
+  project   PortfolioProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String           @db.ObjectId
+  media     Media            @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  sortOrder Int              @default(0)
+  caption   String?
+  altText   String?
+  focal     FocalPosition    @default(CENTER)
+  aspect    AspectPreference @default(ORIGINAL)
+  visible   Boolean          @default(true)
+
+  @@index([projectId, sortOrder])
+}
+
+// ─────────────────────────── Services ───────────────────────────
+
+model Service {
+  id               String        @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  slug             String        @unique
+  shortDescription String?
+  longDescription  String?
+  imageId          String?       @db.ObjectId
+  image            Media?        @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  number           String?
+  ctaText          String?
+  ctaUrl           String?
+  sortOrder        Int           @default(0)
+  status           PublishStatus @default(PUBLISHED)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  features ServiceFeature[]
+
+  @@index([status, sortOrder])
+}
+
+model ServiceFeature {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  serviceId String  @db.ObjectId
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  label     String
+  sortOrder Int     @default(0)
+
+  @@index([serviceId, sortOrder])
+}
+
+// ─────────────────────────── Clients / brands ───────────────────────────
+
+model Client {
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  name       String
+  website    String?
+  logoId     String?       @db.ObjectId
+  logo       Media?        @relation("ClientLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  logoDarkId String?       @db.ObjectId
+  logoDark   Media?        @relation("ClientLogoDark", fields: [logoDarkId], references: [id], onDelete: SetNull)
+  sortOrder  Int           @default(0)
+  status     PublishStatus @default(PUBLISHED)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  projects PortfolioProject[]
+
+  @@index([status, sortOrder])
+}
+
+// ─────────────────────────── Testimonials ───────────────────────────
+
+model Testimonial {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  company   String?
+  role      String?
+  quote     String
+  rating    Int?
+  imageId   String?       @db.ObjectId
+  image     Media?        @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  featured  Boolean       @default(false)
+  sortOrder Int           @default(0)
+  status    PublishStatus @default(PUBLISHED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, sortOrder])
+}
+
+// ─────────────────────────── Statistics ───────────────────────────
+
+model Stat {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  value     String
+  label     String
+  sortOrder Int           @default(0)
+  status    PublishStatus @default(PUBLISHED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, sortOrder])
+}
+
+// ─────────────────────────── Awards ───────────────────────────
+
+model Award {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  year        Int?
+  description String?
+  logoId      String?       @db.ObjectId
+  logo        Media?        @relation(fields: [logoId], references: [id], onDelete: SetNull)
+  link        String?
+  sortOrder   Int           @default(0)
+  status      PublishStatus @default(PUBLISHED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status, sortOrder])
+}
+
+// ─────────────────────────── Packages ───────────────────────────
+
+model Package {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  price       String?
+  priceSuffix String?
+  description String?
+  ctaText     String?
+  ctaUrl      String?
+  featured    Boolean       @default(false)
+  sortOrder   Int           @default(0)
+  status      PublishStatus @default(PUBLISHED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  features PackageFeature[]
+
+  @@index([status, sortOrder])
+}
+
+model PackageFeature {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  packageId String  @db.ObjectId
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  label     String
+  included  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@index([packageId, sortOrder])
+}
+
+// ─────────────────────────── Inquiries (contact) ───────────────────────────
+
+model Inquiry {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  email         String
+  phone         String?
+  company       String?
+  projectType   String?
+  budget        String?
+  preferredDate DateTime?
+  location      String?
+  message       String
+  website       String?
+  referral      String?
+  status        InquiryStatus @default(NEW)
+  ipAddress     String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([status, createdAt])
+}
+
+// ─────────────────────────── Newsletter ───────────────────────────
+
+model NewsletterSubscriber {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  email     String   @unique
+  active    Boolean  @default(true)
+  source    String?  @default("website")
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────── Social links ───────────────────────────
+
+model SocialLink {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  platform  SocialPlatform @unique
+  url       String
+  username  String?
+  visible   Boolean        @default(true)
+  sortOrder Int            @default(0)
+
+  @@index([visible, sortOrder])
+}
+
+// ─────────────────────────── Editable pages ───────────────────────────
+
+model Page {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  slug           String        @unique
+  title          String
+  heading        String?
+  subheading     String?
+  content        String?
+  seoTitle       String?
+  seoDescription String?
+  imageId        String?       @db.ObjectId
+  image          Media?        @relation("PageImage", fields: [imageId], references: [id], onDelete: SetNull)
+  ogImageId      String?       @db.ObjectId
+  visible        Boolean       @default(true)
+  status         PublishStatus @default(PUBLISHED)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  sections PageSection[]
+}
+
+model PageSection {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  pageId    String  @db.ObjectId
+  page      Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  key       String
+  heading   String?
+  body      String?
+  imageId   String? @db.ObjectId
+  ctaText   String?
+  ctaUrl    String?
+  visible   Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  @@index([pageId, sortOrder])
+}
+
+// Ordering + visibility of homepage sections
+model HomeSection {
+  id        String         @id @default(auto()) @map("_id") @db.ObjectId
+  key       HomeSectionKey @unique
+  label     String
+  visible   Boolean        @default(true)
+  sortOrder Int            @default(0)
+
+  @@index([sortOrder])
+}
+
+// ─────────────────────────── Blog / journal ───────────────────────────
+
+model BlogPost {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  slug           String        @unique
+  excerpt        String?
+  content        String?
+  coverId        String?       @db.ObjectId
+  cover          Media?        @relation(fields: [coverId], references: [id], onDelete: SetNull)
+  category       String?
+  tags           String[]      @default([])
+  author         String?
+  status         PublishStatus @default(DRAFT)
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+// ─────────────────────────── Site settings (singleton) ───────────────────────────
+
+model SiteSetting {
+  id                String   @id @map("_id")
+  siteName          String   @default("Lumière Studio")
+  tagline           String?
+  logoUrl           String?
+  faviconUrl        String?
+  email             String?
+  phone             String?
+  address           String?
+  defaultSeoTitle   String?
+  defaultSeoDesc    String?
+  ogImageUrl        String?
+  gaId              String?
+  contactEmail      String?
+  copyright         String?
+  timezone          String   @default("UTC")
+  maintenanceMode   Boolean  @default(false)
+  showPricingPublic Boolean  @default(true)
+  newsletterEnabled Boolean  @default(true)
+  updatedAt         DateTime @updatedAt
+}
+
+// ─────────────────────────── Activity log ───────────────────────────
+
+model ActivityLog {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String?  @db.ObjectId
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  summary   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId])
+}

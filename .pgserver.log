@@ -1,0 +1,108 @@
+[db] initialising data directory…
+The files belonging to this database system will be owned by user "Divyanshu".
+This user must also own the server process.
+
+
+The database cluster will be initialized with this locale configuration:
+  locale provider:   libc
+  LC_COLLATE:  English_United States.1252
+  LC_CTYPE:    English_United States.1252
+  LC_MESSAGES: C
+  LC_MONETARY: English_United States.1252
+  LC_NUMERIC:  English_United States.1252
+  LC_TIME:     English_United States.1252
+The default database encoding has accordingly been set to "WIN1252".
+The default text search configuration will be set to "english".
+
+Data page checksums are disabled.
+
+creating directory C:/Users/Divyanshu/lumiere-pgdata ... 
+ok
+
+creating subdirectories ... 
+ok
+
+selecting dynamic shared memory implementation ... windows
+
+selecting default "max_connections" ... 
+100
+selecting default "shared_buffers" ... 
+128MB
+selecting default time zone ... 
+Asia/Calcutta
+creating configuration files ... 
+ok
+running bootstrap script ... 
+ok
+
+performing post-bootstrap initialization ... 
+ok
+syncing data to disk ... 
+ok
+
+Success. You can now start the database server using:
+
+    ^"C^:^\Users^\Divyanshu^\Desktop^\Abhishek^ sir^\node^_modules^\^@embedded^-postgres^\windows^-x64^\native^\bin^\pg^_ctl^" -D ^"C^:^\Users^\Divyanshu^\lumiere^-pgdata^" -l logfile start
+
+
+[db] starting PostgreSQL on localhost:5432…
+2026-09-08 12:24:05.968 IST [27436] LOG:  starting PostgreSQL 17.10 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+
+2026-09-08 12:24:05.974 IST [27436] LOG:  listening on IPv6 address "::1", port 5432
+
+2026-09-08 12:24:05.974 IST [27436] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+
+2026-09-08 12:24:06.024 IST [23972] LOG:  database system was shut down at 2026-09-08 12:24:04 IST
+
+2026-09-08 12:24:06.067 IST [27436] LOG:  database system is ready to accept connections
+
+[db] created database 'lumiere'
+[db] READY
+2026-09-08 12:29:06.018 IST [25664] LOG:  checkpoint starting: time
+
+2026-09-08 12:31:15.673 IST [25664] LOG:  checkpoint complete: wrote 1206 buffers (7.4%); 0 WAL file(s) added, 0 removed, 0 recycled; write=129.029 s, sync=0.612 s, total=129.655 s; sync files=446, longest=0.004 s, average=0.002 s; distance=5699 kB, estimate=5699 kB; lsn=0/1B04620, redo lsn=0/1B03DF0
+
+2026-09-08 12:44:06.759 IST [25664] LOG:  checkpoint starting: time
+
+2026-09-08 12:44:07.586 IST [25664] LOG:  checkpoint complete: wrote 10 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.783 s, sync=0.019 s, total=0.828 s; sync files=10, longest=0.003 s, average=0.002 s; distance=4 kB, estimate=5130 kB; lsn=0/1B04F60, redo lsn=0/1B04F08
+
+2026-09-08 12:56:19.873 IST [25660] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.874 IST [26772] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.876 IST [24656] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.878 IST [24976] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.879 IST [27556] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.880 IST [8552] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-09-08 12:56:19.880 IST [26880] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.881 IST [24884] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.881 IST [28060] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.882 IST [21748] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.882 IST [22712] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.883 IST [23368] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-09-08 12:56:19.883 IST [27416] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+
+2026-09-08 12:56:19.884 IST [28140] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+

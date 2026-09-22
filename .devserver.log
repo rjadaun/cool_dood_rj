@@ -1,0 +1,17 @@
+
+> lumiere-studio@1.0.0 dev
+> next dev
+
+   ▲ Next.js 15.1.4
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.47:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling / ...
+ ✓ Compiled / in 9.3s (1727 modules)
+ GET / 200 in 1018ms
+ GET / 200 in 12770ms
+ GET / 200 in 12855ms
+ GET / 200 in 281ms

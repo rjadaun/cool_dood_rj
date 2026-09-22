@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-ink text-paper;
+  }
+
+  /* Editorial focus ring — visible, not ugly. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-paper;
+  }
+
+  h1, h2, h3, h4 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  .label {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-stone-600;
+  }
+
+  .container-editorial {
+    @apply mx-auto w-full max-w-[1440px] px-5 md:px-8 lg:px-12;
+  }
+
+  /* Thin animated divider used between sections. */
+  .hairline {
+    @apply h-px w-full origin-left bg-line;
+  }
+
+  .link-underline {
+    @apply relative inline-block after:absolute after:bottom-0 after:left-0 after:h-px after:w-full after:origin-right after:scale-x-0 after:bg-current after:transition-transform after:duration-500 after:ease-editorial hover:after:origin-left hover:after:scale-x-100;
+  }
+
+  /* Rich text rendering (public) */
+  .prose-editorial {
+    @apply max-w-prose text-[17px] leading-[1.8] text-ink/80;
+  }
+  .prose-editorial h2 {
+    @apply mt-12 font-serif text-3xl font-medium text-ink;
+  }
+  .prose-editorial h3 {
+    @apply mt-10 font-serif text-2xl font-medium text-ink;
+  }
+  .prose-editorial p {
+    @apply mt-5;
+  }
+  .prose-editorial a {
+    @apply text-accent-deep underline underline-offset-4;
+  }
+  .prose-editorial blockquote {
+    @apply my-8 border-l-2 border-accent pl-6 font-serif text-2xl italic text-ink;
+  }
+  .prose-editorial ul {
+    @apply mt-5 list-disc space-y-2 pl-6;
+  }
+  .prose-editorial ol {
+    @apply mt-5 list-decimal space-y-2 pl-6;
+  }
+}
+
+@layer utilities {
+  .skeleton {
+    @apply relative overflow-hidden bg-stone-100;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
