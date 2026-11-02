@@ -83,7 +83,7 @@ export class S3StorageProvider implements StorageProvider {
       body: method === "PUT" ? new Uint8Array(body) : undefined,
     });
 
-    if (!res.ok && res.status !== 404) {
+    if (!res.ok && !(method === "DELETE" && res.status === 404)) {
       throw new Error(`S3 ${method} failed: ${res.status} ${await res.text()}`);
     }
   }

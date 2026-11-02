@@ -1,7 +1,8 @@
+import { mediaPage } from "@/lib/media/shared";
 import type { Metadata } from "next";
-import { buildMetadata } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import { getCategories, getPortfolioProjects } from "@/lib/queries/public";
-import { PageHero } from "@/components/public/page-hero";
+import { CmsPageIntro } from "@/components/public/cms-page-intro";
 import { PortfolioFilter } from "@/components/public/portfolio-filter";
 import { ProjectCard } from "@/components/public/project-card";
 import { Pagination } from "@/components/ui/pagination";
@@ -12,11 +13,7 @@ import { ImageOff } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({
-    title: "Portfolio",
-    description: "Selected fashion, beauty and commercial photography projects.",
-    path: "/portfolio",
-  });
+  return buildPageMetadata("portfolio", "Portfolio", "Selected fashion, beauty and commercial photography projects.");
 }
 
 export default async function PortfolioPage({
@@ -26,7 +23,7 @@ export default async function PortfolioPage({
 }) {
   const params = await searchParams;
   const category = params.category ?? "";
-  const page = Math.max(1, Number(params.page) || 1);
+  const page = mediaPage(params.page ?? null);
 
   const [categories, { projects, totalPages }] = await Promise.all([
     getCategories(),
@@ -43,7 +40,7 @@ export default async function PortfolioPage({
 
   return (
     <>
-      <PageHero label="Portfolio" title="Selected work." description="Fashion, beauty and commercial projects." />
+      <CmsPageIntro slug="portfolio" label="Portfolio" title="Selected work." description="Fashion, beauty and commercial projects." />
       <section className="container-editorial py-14 md:py-16">
         <PortfolioFilter categories={categories.map((c) => ({ label: c.name, slug: c.slug }))} active={category} />
 

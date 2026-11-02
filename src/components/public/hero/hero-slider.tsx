@@ -6,7 +6,6 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } fr
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import type { HeroSlide, Media } from "@prisma/client";
 import { MediaImage } from "@/components/shared/media-image";
-import { cn } from "@/lib/utils";
 
 type Slide = HeroSlide & { image: Media | null };
 
@@ -25,21 +24,21 @@ export function HeroSlider({ slides }: { slides: Slide[] }) {
   const duration = active?.durationMs ?? 6000;
 
   const go = React.useCallback(
-    (next: number) => setIndex((prev) => ((next % count) + count) % count),
+    (next: number) => { if (count) setIndex(((next % count) + count) % count); },
     [count]
   );
 
   // Auto-advance.
   React.useEffect(() => {
-    if (count <= 1 || paused) return;
+    if (count <= 1 || paused || reduce) return;
     const t = setTimeout(() => go(index + 1), duration);
     return () => clearTimeout(t);
-  }, [index, count, paused, duration, go]);
+  }, [index, count, paused, duration, go, reduce]);
 
   if (count === 0 || !active) {
     return (
       <section className="flex h-[80vh] items-center justify-center bg-ink text-paper">
-        <p className="label text-paper/50">Add hero slides from the admin panel</p>
+        <Link href="/portfolio" className="font-serif text-display-sm">Explore the portfolio</Link>
       </section>
     );
   }

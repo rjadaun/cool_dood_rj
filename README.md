@@ -79,7 +79,7 @@ cp .env.example .env
 ```
 
 Edit `.env` and set at minimum:
-- `DATABASE_URL` — your PostgreSQL connection string
+- `DATABASE_URL` — your MongoDB connection string
 - `AUTH_SECRET` — generate with `openssl rand -base64 32`
 - `ADMIN_EMAIL` / `ADMIN_PASSWORD` — the first super-admin login
 
@@ -92,7 +92,7 @@ npm run db:seed     # seed realistic sample content + admin user
 
 ### 5. Run
 
-If you used the bundled Postgres (Option A), keep `npm run db:server` running in one
+If you used the bundled MongoDB (Option A), keep `npm run db:server` running in one
 terminal, then in a second terminal:
 
 ```bash
@@ -223,3 +223,36 @@ no rebuilds required.
 Sample images use [Lorem Picsum](https://picsum.photos) placeholders and are meant to be replaced
 from the admin Media Library.
 # cool_dood_rj
+
+
+## Admin audit and regression checks (2 November 2026)
+
+The media library and every image picker now paginate through all uploads. The
+picker uses a viewport-bounded, scrollable dialog with a fixed action footer;
+previews show the full image. Gallery selections persist across pages and searches.
+
+Uploads run one file at a time with progress and per-file errors. The original
+file limit is 15 MB. Raster images above 4 MB are resized in the browser to at most
+2560 px before upload so Vercel's request-body limit is not exceeded. SVG files
+must be under 4 MB. The server validates and converts all accepted images to WebP;
+SVG is rasterised and GIF uses its first frame. Keep original photography files
+separately: the media library stores web-optimised assets, not archival originals.
+
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run test:integration
+# Also run a production build against the isolated test database:
+node tests/admin-integration.mjs --build
+```
+
+Integration tests start a disposable local MongoDB replica set and a local Next.js
+server on port 3107. They override the production database URL, storage provider,
+authentication secret, and email provider. They create only test users and content,
+use local storage, then stop the server and remove their test uploads. Set
+`AUDIT_PORT` to use a different port, or `MONGOMS_SYSTEM_BINARY` to use an installed
+MongoDB binary. Otherwise mongodb-memory-server may download MongoDB on first use.
+No live database reset or seed is required for these code changes.
+
+See `AUDIT.md` for changes, test coverage and deployment verification limits.

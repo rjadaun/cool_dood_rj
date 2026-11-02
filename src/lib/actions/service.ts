@@ -31,7 +31,7 @@ export async function saveService(_prev: FormResult, formData: FormData): Promis
 
   const data = {
     name: d.name,
-    slug: d.slug && d.slug.length ? d.slug : slugify(d.name),
+    slug: slugify(d.slug || d.name),
     shortDescription: nn(d.shortDescription),
     longDescription: nn(d.longDescription),
     imageId: nn(d.imageId),
@@ -42,15 +42,13 @@ export async function saveService(_prev: FormResult, formData: FormData): Promis
     status: d.status,
   };
 
+  if (!data.slug) return { ok: false, message: "Please enter a URL slug.", fieldErrors: { slug: "Use letters or numbers in the slug." } };
+  const slugOwner = await prisma.service.findUnique({ where: { slug: data.slug }, select: { id: true } });
+  if (slugOwner && slugOwner.id !== d.id) return { ok: false, message: "This URL slug is already used.", fieldErrors: { slug: "Choose a unique slug." } };
+
   if (d.id) {
     const id = d.id;
-    await prisma.service.update({ where: { id }, data });
-    await prisma.serviceFeature.deleteMany({ where: { serviceId: id } });
-    if (d.features.length) {
-      await prisma.serviceFeature.createMany({
-        data: d.features.map((label, i) => ({ serviceId: id, label, sortOrder: i })),
-      });
-    }
+    await prisma.service.update({ where: { id }, data: { ...data, features: { deleteMany: {}, create: d.features.map((label, i) => ({ label, sortOrder: i })) } } });
     await logActivity({ userId: user.id, action: "update", entity: "Service", entityId: id, summary: d.name });
   } else {
     const count = await prisma.service.count();

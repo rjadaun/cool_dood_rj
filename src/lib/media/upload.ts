@@ -4,15 +4,8 @@ import { getStorage } from "@/lib/storage";
 import { processImage } from "./process";
 import type { Media } from "@prisma/client";
 
-export const MAX_UPLOAD_BYTES = 15 * 1024 * 1024; // 15MB
-export const ALLOWED_MIME = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/avif",
-  "image/gif",
-  "image/svg+xml",
-];
+import { validateUpload } from "./shared";
+export { MAX_UPLOAD_BYTES, ALLOWED_MIME } from "./shared";
 
 export interface UploadOptions {
   folder?: string;
@@ -28,17 +21,15 @@ export async function uploadFile(
   file: { name: string; type: string; size: number; arrayBuffer(): Promise<ArrayBuffer> },
   opts: UploadOptions = {}
 ): Promise<Media> {
-  if (!ALLOWED_MIME.includes(file.type)) {
-    throw new UploadError(`Unsupported file type: ${file.type}`);
-  }
-  if (file.size > MAX_UPLOAD_BYTES) {
-    throw new UploadError("File is larger than the 15MB limit.");
-  }
+  const error = validateUpload(file);
+  if (error) throw new UploadError(error);
 
   const original = Buffer.from(await file.arrayBuffer());
-  const folder = (opts.folder ?? "uploads").replace(/[^a-z0-9-_/]/gi, "");
+  const folder = (opts.folder ?? "uploads").replace(/[^a-z0-9-_/]/gi, "").replace(/^\/+|\/+$/g, "") || "uploads";
 
-  const processed = await processImage(original, file.type);
+  const processed = await processImage(original, file.type).catch(() => {
+    throw new UploadError("This image is damaged, unsupported or too large to process. Export a JPEG, PNG or WebP and try again.");
+  });
   const storage = getStorage();
 
   let key: string;
@@ -65,7 +56,8 @@ export async function uploadFile(
 
   const { url, key: storedKey } = await storage.put({ key, body, contentType });
 
-  return prisma.media.create({
+  try {
+    return await prisma.media.create({
     data: {
       url,
       key: storedKey,
@@ -81,14 +73,34 @@ export async function uploadFile(
       uploadedById: opts.uploadedById,
     },
   });
+  } catch (err) {
+    await storage.remove(storedKey).catch((cleanupError) => console.error("[media upload cleanup]", cleanupError));
+    throw err;
+  }
 }
 
+export class MediaInUseError extends Error {}
+
 export async function deleteMedia(id: string): Promise<void> {
-  const media = await prisma.media.findUnique({ where: { id } });
-  if (!media) return;
-  // The site logo is stored as a plain URL rather than a relation, so guard it here.
-  const isSiteLogo = await prisma.siteSetting.findFirst({ where: { logoUrl: media.url }, select: { id: true } });
-  if (isSiteLogo) throw new Error("This file is the current site logo.");
-  await getStorage().remove(media.key);
-  await prisma.media.delete({ where: { id } });
+  // Delete the record only after checking every relation and URL-only reference.
+  // Keep storage intact if a database check or deletion fails.
+  const media = await prisma.$transaction(async (tx) => {
+    const found = await tx.media.findUnique({ where: { id }, include: { _count: true } });
+    if (!found) return null;
+    const [settings, page, section, post] = await Promise.all([
+      tx.siteSetting.findFirst({ where: { OR: [{ logoUrl: found.url }, { faviconUrl: found.url }, { ogImageUrl: found.url }] }, select: { id: true } }),
+      tx.page.findFirst({ where: { OR: [{ ogImageId: id }, { content: { contains: found.url } }] }, select: { id: true } }),
+      tx.pageSection.findFirst({ where: { OR: [{ imageId: id }, { body: { contains: found.url } }] }, select: { id: true } }),
+      tx.blogPost.findFirst({ where: { content: { contains: found.url } }, select: { id: true } }),
+    ]);
+    if (Object.values(found._count).some((count) => count > 0) || settings || page || section || post) {
+      throw new MediaInUseError("This image is used by content. Replace or remove those references before deleting it.");
+    }
+    await tx.media.delete({ where: { id } });
+    return found;
+  });
+  if (media) {
+    // A storage outage may leave an orphan, but must never break published content.
+    await getStorage().remove(media.key).catch((err) => console.error("[media storage cleanup]", err));
+  }
 }

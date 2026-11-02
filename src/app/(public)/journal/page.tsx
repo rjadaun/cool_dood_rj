@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { buildMetadata } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import { getPublishedPosts } from "@/lib/queries/public";
 import { formatDate } from "@/lib/utils";
-import { PageHero } from "@/components/public/page-hero";
+import { CmsPageIntro } from "@/components/public/cms-page-intro";
 import { MediaImage } from "@/components/shared/media-image";
 import { Reveal } from "@/components/shared/reveal";
 import { EmptyState } from "@/components/ui/misc";
@@ -12,18 +12,14 @@ import { Newspaper } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({
-    title: "Journal",
-    description: "Notes on photography, process and the craft behind the images.",
-    path: "/journal",
-  });
+  return buildPageMetadata("journal", "Journal", "Notes on photography, process and the craft behind the images.");
 }
 
 export default async function JournalPage() {
   const posts = await getPublishedPosts();
   return (
     <>
-      <PageHero label="Journal" title="Notes from the studio." />
+      <CmsPageIntro slug="journal" label="Journal" title="Notes from the studio." />
       <section className="container-editorial py-16 md:py-20">
         {posts.length === 0 ? (
           <EmptyState icon={Newspaper} title="No articles yet" description="Check back soon for studio notes." />

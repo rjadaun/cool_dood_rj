@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Star } from "lucide-react";
-import { buildMetadata } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import { getTestimonials } from "@/lib/queries/public";
-import { PageHero } from "@/components/public/page-hero";
+import { CmsPageIntro } from "@/components/public/cms-page-intro";
 import { MediaImage } from "@/components/shared/media-image";
 import { Reveal } from "@/components/shared/reveal";
 import { CtaSection } from "@/components/public/sections/cta-section";
@@ -10,18 +10,14 @@ import { CtaSection } from "@/components/public/sections/cta-section";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({
-    title: "Testimonials",
-    description: "What clients say about working with the studio.",
-    path: "/testimonials",
-  });
+  return buildPageMetadata("testimonials", "Testimonials", "What clients say about working with the studio.");
 }
 
 export default async function TestimonialsPage() {
   const testimonials = await getTestimonials();
   return (
     <>
-      <PageHero label="Testimonials" title="In their words." />
+      <CmsPageIntro slug="testimonials" label="Testimonials" title="In their words." />
       <section className="container-editorial py-20 md:py-24">
         <div className="columns-1 gap-8 md:columns-2 lg:columns-2 [&>*]:mb-8 [&>*]:break-inside-avoid">
           {testimonials.map((t, i) => (

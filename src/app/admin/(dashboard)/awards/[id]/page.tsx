@@ -5,6 +5,7 @@ import { AwardForm } from "@/components/admin/awards/award-form";
 
 export default async function EditAwardPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const award = await prisma.award.findUnique({ where: { id }, include: { logo: true } });
   if (!award) notFound();
 

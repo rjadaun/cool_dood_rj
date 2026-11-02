@@ -1,3 +1,4 @@
+import { mediaPage } from "@/lib/media/shared";
 import Link from "next/link";
 import { Download, Search, Inbox } from "lucide-react";
 import type { Prisma, InquiryStatus } from "@prisma/client";
@@ -24,7 +25,7 @@ export default async function InquiriesPage({
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
   const status = typeof sp.status === "string" && isStatus(sp.status) ? sp.status : "";
-  const page = Math.max(1, Number(sp.page) || 1);
+  const page = mediaPage(sp.page ?? null);
 
   const where: Prisma.InquiryWhereInput = {};
   if (status) where.status = status;

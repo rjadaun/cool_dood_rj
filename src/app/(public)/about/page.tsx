@@ -1,6 +1,7 @@
+import { PageSections } from "@/components/public/cms-page-intro";
 import type { Metadata } from "next";
 import { buildMetadata } from "@/lib/seo";
-import { getPageBySlug, getStats, getAwards, getClients } from "@/lib/queries/public";
+import { getRoutePage, getStats, getAwards, getClients } from "@/lib/queries/public";
 import { PageHero } from "@/components/public/page-hero";
 import { MediaImage } from "@/components/shared/media-image";
 import { Reveal } from "@/components/shared/reveal";
@@ -11,7 +12,7 @@ import { ClientsSection } from "@/components/public/sections/clients-section";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await getPageBySlug("about");
+  const page = await getRoutePage("about");
   return buildMetadata({
     title: page?.seoTitle || "About",
     description: page?.seoDescription || page?.subheading,
@@ -21,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
   const [page, stats, awards, clients] = await Promise.all([
-    getPageBySlug("about"),
+    getRoutePage("about"),
     getStats(),
     getAwards(),
     getClients(),
@@ -29,7 +30,6 @@ export default async function AboutPage() {
 
   return (
     <>
-      <div>Test message</div>
       <PageHero
         label="About the Studio"
         title={page?.heading || "Photography with a refined eye."}
@@ -64,6 +64,7 @@ export default async function AboutPage() {
           )}
         </section>
       )}
+      <PageSections sections={page?.sections ?? []} />
       <StatsSection stats={stats} />
       <ClientsSection clients={clients} />
       <AwardsSection awards={awards} />

@@ -24,7 +24,7 @@ export async function GET(
   }
 
   const { key } = await params;
-  const joined = key.map(decodeURIComponent).join("/");
+  const joined = key.join("/");
   const ext = joined.split(".").pop()?.toLowerCase() ?? "";
   const contentType = mimeByExt[ext] ?? "application/octet-stream";
 
@@ -34,6 +34,7 @@ export async function GET(
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": contentType,
+        "Content-Security-Policy": "default-src 'none'; sandbox",
         "Cache-Control": "public, max-age=31536000, immutable",
       },
     });

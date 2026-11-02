@@ -18,6 +18,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 
 export default async function InquiryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const inquiry = await prisma.inquiry.findUnique({ where: { id } });
   if (!inquiry) notFound();
 

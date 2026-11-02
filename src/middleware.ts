@@ -15,12 +15,9 @@ export default auth((req) => {
   // Allow the login page and auth API through.
   if (!isAdminArea) return NextResponse.next();
 
-  if (isLoginPage) {
-    if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/admin", req.nextUrl.origin));
-    }
-    return NextResponse.next();
-  }
+  // The node login page validates current account state. An edge JWT can be
+  // stale after an account is disabled; redirecting here would create a loop.
+  if (isLoginPage) return NextResponse.next();
 
   if (!isLoggedIn) {
     const loginUrl = new URL("/admin/login", req.nextUrl.origin);

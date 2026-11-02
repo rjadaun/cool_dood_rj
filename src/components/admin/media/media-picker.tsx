@@ -1,21 +1,17 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- Admin previews use original storage URLs. */
+
 import * as React from "react";
-import { toast } from "sonner";
-import { Loader2, Search, UploadCloud, Check, Trash2 } from "lucide-react";
+import { Loader2, Check, ImageIcon } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
-import { formatBytes, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import type { MediaItem } from "@/lib/media/shared";
+import { useMediaLibrary } from "./use-media-library";
+import { LibraryToolbar, LibraryPagination, LibraryError } from "./library-controls";
 
-export interface MediaItem {
-  id: string;
-  url: string;
-  filename: string;
-  altText: string | null;
-  width: number | null;
-  height: number | null;
-  size: number;
-}
+export type { MediaItem } from "@/lib/media/shared";
 
 interface MediaPickerProps {
   open: boolean;
@@ -26,200 +22,46 @@ interface MediaPickerProps {
   folder?: string;
 }
 
-export function MediaPicker({
-  open,
-  onClose,
-  onSelect,
-  onSelectMany,
-  multiple = false,
-  folder = "uploads",
-}: MediaPickerProps) {
-  const [items, setItems] = React.useState<MediaItem[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const [uploading, setUploading] = React.useState(false);
-  const [q, setQ] = React.useState("");
-  const [selected, setSelected] = React.useState<MediaItem | null>(null);
-  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
-  const inputRef = React.useRef<HTMLInputElement>(null);
-
-  const load = React.useCallback(async (query = "") => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/admin/media?q=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      setItems(data.items ?? []);
-    } catch {
-      toast.error("Could not load media.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  React.useEffect(() => {
-    if (open) {
-      setSelected(null);
-      setSelectedIds(new Set());
-      load(q);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
+export function MediaPicker({ open, onClose, onSelect, onSelectMany, multiple = false, folder = "uploads" }: MediaPickerProps) {
+  const library = useMediaLibrary(open, folder);
+  // Retain the objects across page/search changes, not just IDs from the current page.
+  const [selected, setSelected] = React.useState<Map<string, MediaItem>>(new Map());
+  React.useEffect(() => { if (open) setSelected(new Map()); }, [open]);
   function toggle(item: MediaItem) {
-    if (multiple) {
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        if (next.has(item.id)) next.delete(item.id);
-        else next.add(item.id);
-        return next;
-      });
-    } else {
-      setSelected(item);
-    }
+    setSelected((previous) => {
+      const next = multiple ? new Map(previous) : new Map<string, MediaItem>();
+      if (previous.has(item.id)) next.delete(item.id);
+      else next.set(item.id, item);
+      return next;
+    });
   }
-
   function confirmSelection() {
-    if (multiple) {
-      onSelectMany?.(items.filter((i) => selectedIds.has(i.id)));
-    } else if (selected) {
-      onSelect?.(selected);
-    }
+    const items = Array.from(selected.values());
+    if (multiple) onSelectMany?.(items);
+    else if (items[0]) onSelect?.(items[0]);
     onClose();
   }
+  const close = () => { if (!library.progress) onClose(); };
 
-  const isChosen = (item: MediaItem) => (multiple ? selectedIds.has(item.id) : selected?.id === item.id);
-  const chosenCount = multiple ? selectedIds.size : selected ? 1 : 0;
-
-  // Debounced search.
-  React.useEffect(() => {
-    if (!open) return;
-    const t = setTimeout(() => load(q), 300);
-    return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q]);
-
-  async function upload(files: FileList | File[]) {
-    const list = Array.from(files);
-    if (list.length === 0) return;
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      list.forEach((f) => fd.append("files", f));
-      fd.append("folder", folder);
-      const res = await fetch("/api/admin/media", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Upload failed");
-      toast.success(`Uploaded ${data.items.length} file(s).`);
-      setItems((prev) => [...data.items, ...prev]);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  async function remove(item: MediaItem, e: React.MouseEvent) {
-    e.stopPropagation();
-    if (!confirm(`Delete "${item.filename}"? This cannot be undone.`)) return;
-    const res = await fetch(`/api/admin/media/${item.id}`, { method: "DELETE" });
-    if (res.ok) {
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-      toast.success("File deleted.");
-    } else {
-      const data = await res.json();
-      toast.error(data.error ?? "Could not delete file.");
-    }
-  }
-
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Media Library"
-      size="xl"
-      footer={
-        <>
-          <Button variant="ghost" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button disabled={chosenCount === 0} onClick={confirmSelection}>
-            {multiple ? `Add ${chosenCount} image${chosenCount === 1 ? "" : "s"}` : "Select image"}
-          </Button>
-        </>
-      }
-    >
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search by name…"
-            className="h-10 w-full border border-stone-200 pl-9 pr-3 text-sm outline-none focus:border-ink"
-          />
-        </div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          hidden
-          onChange={(e) => e.target.files && upload(e.target.files)}
-        />
-        <Button size="sm" onClick={() => inputRef.current?.click()} loading={uploading}>
-          <UploadCloud className="h-4 w-4" /> Upload
-        </Button>
+  return <Modal open={open} onClose={close} title="Media Library" description="Choose from all uploaded images, or upload new ones." size="xl" footer={
+    <div className="flex w-full flex-wrap items-center justify-between gap-3">
+      <div className="text-sm text-stone-600" aria-live="polite">{selected.size} selected {selected.size > 0 && <button type="button" className="ml-2 underline" onClick={() => setSelected(new Map())}>Clear</button>}</div>
+      <div className="flex gap-2"><Button type="button" variant="ghost" disabled={!!library.progress} onClick={close}>Cancel</Button><Button type="button" disabled={!selected.size || !!library.progress} onClick={confirmSelection}>{multiple ? `Add ${selected.size} image${selected.size === 1 ? "" : "s"}` : "Select image"}</Button></div>
+    </div>
+  }>
+    <div className="space-y-4">
+      <LibraryToolbar library={library} />
+      <div onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); void library.upload(e.dataTransfer.files); }} className="min-h-40 rounded-md border border-dashed border-stone-300 p-3" aria-busy={library.loading}>
+        {library.error ? <LibraryError library={library} /> : library.loading ? <div className="flex h-40 items-center justify-center" role="status"><Loader2 className="h-6 w-6 animate-spin" /><span className="sr-only">Loading images</span></div> : !library.items.length ? <div className="flex h-40 flex-col items-center justify-center gap-2 text-center text-sm text-stone-500"><ImageIcon className="h-8 w-8" />{library.q ? "No images match your search. Try another filename." : "Drop images here, or use Upload images."}</div> :
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+            {library.items.map((item) => <button key={item.id} type="button" aria-pressed={selected.has(item.id)} aria-label={`Select ${item.filename}`} title={item.filename} onClick={() => toggle(item)} className={cn("relative min-w-0 overflow-hidden rounded-md border-2 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2", selected.has(item.id) ? "border-ink bg-stone-100" : "border-stone-200 hover:border-stone-400")}>
+              <div className="aspect-[4/3] bg-stone-100 p-1"><img src={item.url} alt={item.altText ?? item.filename} loading="lazy" className="h-full w-full object-contain" /></div>
+              {selected.has(item.id) && <span className="absolute right-2 top-2 rounded-full bg-ink p-1 text-white"><Check className="h-4 w-4" /></span>}
+              <span className="block truncate px-2 py-2 text-xs">{item.filename}</span>
+            </button>)}
+          </div>}
       </div>
-
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault();
-          upload(e.dataTransfer.files);
-        }}
-        className="min-h-[300px] rounded-md border border-dashed border-stone-200 p-3"
-      >
-        {loading ? (
-          <div className="flex h-64 items-center justify-center text-stone-400">
-            <Loader2 className="h-5 w-5 animate-spin" />
-          </div>
-        ) : items.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center text-center text-sm text-stone-400">
-            <UploadCloud className="mb-2 h-8 w-8" />
-            Drag & drop images here, or use the upload button.
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
-            {items.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => toggle(item)}
-                className={cn(
-                  "group relative aspect-square overflow-hidden rounded border-2 bg-stone-100",
-                  isChosen(item) ? "border-ink" : "border-transparent hover:border-stone-300"
-                )}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.url} alt={item.altText ?? ""} className="h-full w-full object-cover" />
-                {isChosen(item) && (
-                  <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-ink text-paper">
-                    <Check className="h-3 w-3" />
-                  </span>
-                )}
-                <span
-                  onClick={(e) => remove(item, e)}
-                  className="absolute left-1 top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-white/90 text-red-600 group-hover:flex"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </span>
-                <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-ink/70 to-transparent px-1.5 py-1 text-left text-[10px] text-paper">
-                  {item.width}×{item.height} · {formatBytes(item.size)}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-    </Modal>
-  );
+      <LibraryPagination library={library} />
+    </div>
+  </Modal>;
 }

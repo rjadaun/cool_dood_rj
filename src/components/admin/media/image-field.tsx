@@ -56,8 +56,8 @@ export function ImageField({
       {media ? (
         <div className={cn("group relative w-full overflow-hidden rounded-md border border-stone-200 bg-stone-100", aspect)}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={media.url} alt={media.altText ?? ""} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/40 opacity-0 transition-opacity group-hover:opacity-100">
+          <img src={media.url} alt={media.altText ?? ""} className="h-full w-full object-contain" />
+          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-ink/40 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
             <button
               type="button"
               onClick={() => setOpen(true)}

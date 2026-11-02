@@ -8,7 +8,7 @@ export function MaintenanceScreen({ settings }: { settings: SiteSetting }) {
         {settings.siteName}
       </p>
       <h1 className="mt-8 max-w-3xl font-serif text-display-sm font-light leading-[1.05] md:text-display">
-        We're making things better.
+        We&apos;re making things better.
       </h1>
       <p className="mt-6 max-w-md text-paper/70">
         The site is briefly down for maintenance and will be back shortly.

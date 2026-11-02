@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireUser, AuthError } from "@/lib/auth/rbac";
 import { logActivity } from "@/lib/activity";
 import { TAGS } from "@/lib/cache-tags";
+import { z } from "zod";
 import { pageSchema } from "@/lib/validation/schemas";
 import { sanitizeHtml } from "@/lib/sanitize";
 import { formToObject, fieldErrorsFromZod, revalidate, type FormResult } from "./helpers";
@@ -68,6 +69,13 @@ export async function savePageSection(_prev: FormResult, formData: FormData): Pr
   const obj = formToObject(formData);
   const id = typeof obj.id === "string" ? obj.id : "";
   if (!id) return { ok: false, message: "Missing section id." };
+
+  const sectionSchema = z.object({
+    heading: z.string().max(200).optional(), body: z.string().max(50000).optional(), ctaText: z.string().max(80).optional(),
+    ctaUrl: z.string().refine((value) => !value || /^(https?:\/\/|\/(?!\/)|mailto:|tel:|#)/i.test(value), "Enter a valid link").optional(),
+  });
+  const parsed = sectionSchema.safeParse(obj);
+  if (!parsed.success) return { ok: false, message: "Please enter valid section details and a safe link.", fieldErrors: fieldErrorsFromZod(parsed.error) };
 
   const str = (v: unknown) => (typeof v === "string" && v.length ? v : null);
 

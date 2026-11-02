@@ -1,3 +1,4 @@
+import { PageSections } from "@/components/public/cms-page-intro";
 import { getSettings } from "@/lib/queries/settings";
 import {
   getHeroSlides,
@@ -71,7 +72,7 @@ export default async function HomePage() {
 
   const visible = sections.filter((s) => s.visible).sort((a, b) => a.sortOrder - b.sortOrder);
   // Fallback order if HomeSection table is empty.
-  const order = visible.length
+  const order = sections.length
     ? visible.map((s) => s.key)
     : ([
         "HERO", "ABOUT", "STATS", "CATEGORIES", "FEATURED_WORK", "PROCESS", "SERVICES",
@@ -99,5 +100,5 @@ export default async function HomePage() {
     CTA: <CtaSection key="cta" heading={cta?.heading} body={cta?.body} ctaText={cta?.ctaText} ctaUrl={cta?.ctaUrl} />,
   };
 
-  return <>{order.map((key) => render[key])}</>;
+  return <>{order.map((key) => render[key])}<PageSections sections={home?.sections.filter((section) => !["process", "cta"].includes(section.key)) ?? []} /></>;
 }

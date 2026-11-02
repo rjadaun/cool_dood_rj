@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MoreHorizontal, Pencil, Copy, Trash2, Eye, Power } from "lucide-react";
@@ -32,13 +33,28 @@ export function RowActions({
   const router = useRouter();
   const confirm = useConfirm();
   const ref = React.useRef<HTMLDivElement>(null);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const [position, setPosition] = React.useState({ top: 0, left: 0 });
+  function toggle() {
+    const anchor = ref.current?.getBoundingClientRect();
+    if (anchor) {
+      const height = [editHref, previewHref, onToggle, onDuplicate, onDelete].filter(Boolean).length * 40 + 10;
+      setPosition({ left: Math.max(8, Math.min(anchor.right - 176, window.innerWidth - 184)), top: Math.max(8, anchor.bottom + height > window.innerHeight ? anchor.top - height : anchor.bottom + 4) });
+    }
+    setOpen((value) => !value);
+  }
 
   React.useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) setOpen(false);
     };
+    const close = () => setOpen(false);
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { close(); ref.current?.querySelector("button")?.focus(); } };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", close);
+    window.addEventListener("scroll", close);
+    return () => { document.removeEventListener("mousedown", onClick); document.removeEventListener("keydown", onKey); window.removeEventListener("resize", close); window.removeEventListener("scroll", close); };
   }, []);
 
   async function run(fn: () => Promise<FormResult>, successMsg?: string) {
@@ -52,6 +68,8 @@ export function RowActions({
       } else {
         toast.error(res.message ?? "Something went wrong.");
       }
+    } catch {
+      toast.error("The action failed. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -60,15 +78,17 @@ export function RowActions({
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         disabled={busy}
         className="flex h-8 w-8 items-center justify-center rounded-md text-stone-400 hover:bg-stone-100 hover:text-ink disabled:opacity-50"
+        type="button"
+        aria-expanded={open}
         aria-label="Actions"
       >
         <MoreHorizontal className="h-4 w-4" />
       </button>
-      {open && (
-        <div className="absolute right-0 top-9 z-20 w-44 overflow-hidden rounded-md border border-stone-200 bg-white py-1 shadow-lg">
+      {open && createPortal(
+        <div ref={menuRef} style={position} className="fixed z-[80] max-h-[calc(100dvh-1rem)] w-44 overflow-y-auto rounded-md border border-stone-200 bg-white py-1 shadow-lg">
           {editHref && (
             <Link href={editHref} className="flex items-center gap-2.5 px-3 py-2 text-sm text-ink hover:bg-stone-50">
               <Pencil className="h-3.5 w-3.5 text-stone-400" /> Edit
@@ -106,7 +126,7 @@ export function RowActions({
               <Trash2 className="h-3.5 w-3.5" /> Delete
             </button>
           )}
-        </div>
+        </div>, document.body
       )}
     </div>
   );

@@ -66,43 +66,24 @@ export async function savePortfolio(_prev: FormResult, formData: FormData): Prom
     publishedAt: d.status === "PUBLISHED" ? new Date() : null,
   };
 
-  let projectId = d.id;
-
+  const mediaIds = [...new Set(d.images.map((image) => image.mediaId))];
+  if (mediaIds.length && await prisma.media.count({ where: { id: { in: mediaIds } } }) !== mediaIds.length) {
+    return { ok: false, message: "Some gallery images no longer exist. Remove them and choose again." };
+  }
+  const gallery = d.images.map((img, i) => ({ mediaId: img.mediaId, sortOrder: i, caption: img.caption || null, altText: img.altText || null, focal: img.focal, aspect: img.aspect, visible: img.visible }));
   if (d.id) {
     const existing = await prisma.portfolioProject.findUnique({ where: { id: d.id } });
-    const finalSlug = await uniqueSlug(slug || existing?.slug || d.title, d.id);
+    if (!existing) return { ok: false, message: "Project not found." };
+    const finalSlug = await uniqueSlug(slug || existing.slug || d.title, d.id);
     await prisma.portfolioProject.update({
       where: { id: d.id },
-      data: {
-        ...baseData,
-        slug: finalSlug,
-        // Keep original publishedAt if it was already published.
-        publishedAt: existing?.publishedAt ?? baseData.publishedAt,
-      },
+      data: { ...baseData, slug: finalSlug, publishedAt: existing.publishedAt ?? baseData.publishedAt, images: { deleteMany: {}, create: gallery } },
     });
-    // Rebuild gallery.
-    await prisma.portfolioImage.deleteMany({ where: { projectId: d.id } });
     await logActivity({ userId: user.id, action: "update", entity: "PortfolioProject", entityId: d.id, summary: d.title });
   } else {
     const finalSlug = await uniqueSlug(slug || d.title);
-    const created = await prisma.portfolioProject.create({ data: { ...baseData, slug: finalSlug } });
-    projectId = created.id;
+    const created = await prisma.portfolioProject.create({ data: { ...baseData, slug: finalSlug, images: { create: gallery } } });
     await logActivity({ userId: user.id, action: "create", entity: "PortfolioProject", entityId: created.id, summary: d.title });
-  }
-
-  if (projectId && d.images.length) {
-    await prisma.portfolioImage.createMany({
-      data: d.images.map((img, i) => ({
-        projectId: projectId!,
-        mediaId: img.mediaId,
-        sortOrder: i,
-        caption: img.caption || null,
-        altText: img.altText || null,
-        focal: img.focal,
-        aspect: img.aspect,
-        visible: img.visible,
-      })),
-    });
   }
 
   revalidate([TAGS.portfolio, TAGS.categories], ["/", "/portfolio"]);

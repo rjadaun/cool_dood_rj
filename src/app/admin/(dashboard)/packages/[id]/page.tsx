@@ -5,6 +5,7 @@ import { PackageForm } from "@/components/admin/package/package-form";
 
 export default async function EditPackagePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const pkg = await prisma.package.findUnique({
     where: { id },
     include: { features: true },

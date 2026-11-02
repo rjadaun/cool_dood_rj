@@ -7,7 +7,7 @@ export default function NotFound() {
       <p className="label text-stone-400">Error 404</p>
       <h1 className="mt-6 font-serif text-display-lg font-light leading-none text-ink">404</h1>
       <p className="mt-6 max-w-sm text-ink/60">
-        The page you're looking for has moved or never existed.
+        The page you&apos;re looking for has moved or never existed.
       </p>
       <Link
         href="/"

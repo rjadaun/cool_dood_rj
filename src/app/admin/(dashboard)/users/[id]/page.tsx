@@ -7,6 +7,7 @@ import { UserForm } from "@/components/admin/users/user-form";
 export default async function EditUserPage({ params }: { params: Promise<{ id: string }> }) {
   await requirePage("ADMIN");
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) notFound();
 

@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { ImagePlus, Loader2, UploadCloud } from "lucide-react";
+import { uploadMedia } from "@/lib/media/client";
 import { Button } from "@/components/ui/button";
 
 interface LogoFieldProps {
@@ -34,13 +35,8 @@ export function LogoField({ name, defaultValue }: LogoFieldProps) {
   async function upload(file: File) {
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("files", file);
-      fd.append("folder", "branding");
-      const res = await fetch("/api/admin/media", { method: "POST", body: fd });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.error ?? "Upload failed");
-      setUrl(data.items[0].url);
+      const media = await uploadMedia(file, "branding");
+      setUrl(media.url);
       toast.success("Logo uploaded. Click “Save settings” to apply it.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");

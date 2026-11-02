@@ -14,18 +14,16 @@ const MAX_DIMENSION = 2560; // cap huge originals while preserving quality
 /**
  * Normalises an uploaded image: auto-rotates, caps oversized dimensions,
  * re-encodes to high-quality WebP, and produces a tiny blur placeholder.
- * Non-raster files (e.g. SVG logos) pass through untouched.
+ * SVG logos are rasterised too, so uploaded active content is never served.
  */
 export async function processImage(input: Buffer, mimeType: string): Promise<ProcessedImage | null> {
-  if (mimeType === "image/svg+xml") return null;
   if (!mimeType.startsWith("image/")) return null;
 
-  const pipeline = sharp(input, { failOn: "none" }).rotate();
-  const meta = await pipeline.metadata();
+  const pipeline = sharp(input, { limitInputPixels: 100_000_000 }).rotate();
 
   const resized = pipeline.resize({
-    width: Math.min(meta.width ?? MAX_DIMENSION, MAX_DIMENSION),
-    height: Math.min(meta.height ?? MAX_DIMENSION, MAX_DIMENSION),
+    width: MAX_DIMENSION,
+    height: MAX_DIMENSION,
     fit: "inside",
     withoutEnlargement: true,
   });
@@ -34,7 +32,7 @@ export async function processImage(input: Buffer, mimeType: string): Promise<Pro
   const finalMeta = await sharp(buffer).metadata();
 
   // 16px wide blur placeholder as a data URL.
-  const blur = await sharp(input, { failOn: "none" })
+  const blur = await sharp(input, { limitInputPixels: 100_000_000 })
     .rotate()
     .resize(16, 16, { fit: "inside" })
     .webp({ quality: 40 })

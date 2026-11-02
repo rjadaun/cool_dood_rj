@@ -30,6 +30,7 @@ export async function submitInquiry(_prev: ActionResult, formData: FormData): Pr
   }
 
   const raw = Object.fromEntries(formData.entries());
+  if (raw.company_url) return { ok: true, message: "Thank you, your inquiry has been received." };
   const parsed = contactSchema.safeParse(raw);
   if (!parsed.success) {
     return { ok: false, message: "Please check the highlighted fields.", fieldErrors: zodErrors(parsed.error) };
@@ -76,6 +77,8 @@ export async function subscribeNewsletter(_prev: ActionResult, formData: FormDat
     return { ok: false, message: "Please slow down and try again shortly." };
   }
 
+  if (formData.get("website")) return { ok: true, message: "You're subscribed." };
+  if (!(await getSettings()).newsletterEnabled) return { ok: false, message: "Newsletter sign-ups are currently closed." };
   const parsed = newsletterSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
     return { ok: false, message: "Please enter a valid email.", fieldErrors: zodErrors(parsed.error) };
@@ -83,14 +86,6 @@ export async function subscribeNewsletter(_prev: ActionResult, formData: FormDat
   if (parsed.data.website) return { ok: true, message: "You're subscribed." };
 
   const email = parsed.data.email.toLowerCase();
-  const existing = await prisma.newsletterSubscriber.findUnique({ where: { email } });
-  if (existing) {
-    if (!existing.active) {
-      await prisma.newsletterSubscriber.update({ where: { email }, data: { active: true } });
-    }
-    return { ok: true, message: "You're already on the list, thank you." };
-  }
-
-  await prisma.newsletterSubscriber.create({ data: { email, source: "website" } });
+  await prisma.newsletterSubscriber.upsert({ where: { email }, update: { active: true }, create: { email, source: "website" } });
   return { ok: true, message: "You're subscribed. Welcome to the studio." };
 }

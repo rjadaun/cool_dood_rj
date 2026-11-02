@@ -35,6 +35,10 @@ export async function saveCategory(_prev: FormResult, formData: FormData): Promi
     status: d.status,
   };
 
+  if (!data.slug) return { ok: false, message: "Please enter a URL slug.", fieldErrors: { slug: "Use letters or numbers in the slug." } };
+  const slugOwner = await prisma.category.findUnique({ where: { slug: data.slug }, select: { id: true } });
+  if (slugOwner && slugOwner.id !== d.id) return { ok: false, message: "This URL slug is already used.", fieldErrors: { slug: "Choose a unique slug." } };
+
   if (d.id) {
     await prisma.category.update({ where: { id: d.id }, data });
     await logActivity({ userId: user.id, action: "update", entity: "Category", entityId: d.id, summary: d.name });

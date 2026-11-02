@@ -5,6 +5,7 @@ import { StatForm } from "@/components/admin/stats/stat-form";
 
 export default async function EditStatPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const stat = await prisma.stat.findUnique({ where: { id } });
   if (!stat) notFound();
 

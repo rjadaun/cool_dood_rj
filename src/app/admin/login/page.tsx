@@ -1,3 +1,5 @@
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { LoginForm } from "@/components/admin/login-form";
 
@@ -11,6 +13,7 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string }>;
 }) {
+  if ((await auth())?.user) redirect("/admin");
   const { callbackUrl } = await searchParams;
 
   return (

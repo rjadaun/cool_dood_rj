@@ -19,7 +19,9 @@ export async function saveSocial(_prev: FormResult, formData: FormData): Promise
     throw e;
   }
 
-  const parsed = socialSchema.safeParse(formToObject(formData));
+  const obj = formToObject(formData);
+  obj.visible = formData.get("visible") === "on" || formData.get("visible") === "true";
+  const parsed = socialSchema.safeParse(obj);
   if (!parsed.success) {
     return { ok: false, message: "Please fix the highlighted fields.", fieldErrors: fieldErrorsFromZod(parsed.error) };
   }
@@ -32,6 +34,9 @@ export async function saveSocial(_prev: FormResult, formData: FormData): Promise
     visible: d.visible,
     sortOrder: d.sortOrder,
   };
+
+  const owner = await prisma.socialLink.findUnique({ where: { platform: d.platform }, select: { id: true } });
+  if (d.id && owner && owner.id !== d.id) return { ok: false, message: "That platform already has a social link.", fieldErrors: { platform: "Edit the existing link for this platform." } };
 
   if (d.id) {
     await prisma.socialLink.update({ where: { id: d.id }, data });

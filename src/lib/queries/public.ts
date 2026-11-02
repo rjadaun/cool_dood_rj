@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { notFound } from "next/navigation";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { TAGS } from "@/lib/cache-tags";
@@ -47,7 +49,7 @@ export const getFeaturedProjects = unstable_cache(
       include: { cover: true, category: true },
     }),
   ["featured-projects"],
-  { tags: [TAGS.portfolio], revalidate: 3600 }
+  { tags: [TAGS.portfolio, TAGS.categories], revalidate: 3600 }
 );
 
 export const getSelectedProjects = unstable_cache(
@@ -59,7 +61,7 @@ export const getSelectedProjects = unstable_cache(
       include: { cover: true, category: true },
     }),
   ["selected-projects"],
-  { tags: [TAGS.portfolio], revalidate: 3600 }
+  { tags: [TAGS.portfolio, TAGS.categories], revalidate: 3600 }
 );
 
 export const getServices = unstable_cache(
@@ -138,7 +140,7 @@ export async function getPostBySlug(slug: string) {
 
 export async function getPageBySlug(slug: string) {
   return prisma.page.findFirst({
-    where: { slug, visible: true },
+    where: { slug, visible: true, status: PUBLISHED },
     include: {
       image: true,
       sections: { where: { visible: true }, orderBy: { sortOrder: "asc" } },
@@ -200,3 +202,10 @@ export async function getRelatedProjects(projectId: string, categoryId: string |
     include: { cover: true, category: true },
   });
 }
+
+/** A configured hidden page must not silently fall back to public default content. */
+export const getRoutePage = cache(async (slug: string) => {
+  const page = await prisma.page.findUnique({ where: { slug }, include: { image: true, sections: { where: { visible: true }, orderBy: { sortOrder: "asc" } } } });
+  if (page && (!page.visible || page.status !== "PUBLISHED")) notFound();
+  return page;
+});

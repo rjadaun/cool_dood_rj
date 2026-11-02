@@ -46,6 +46,10 @@ export async function saveBlogPost(_prev: FormResult, formData: FormData): Promi
     seoDescription: nn(d.seoDescription),
   };
 
+  if (!data.slug) return { ok: false, message: "Please enter a URL slug.", fieldErrors: { slug: "Use letters or numbers in the slug." } };
+  const slugOwner = await prisma.blogPost.findUnique({ where: { slug: data.slug }, select: { id: true } });
+  if (slugOwner && slugOwner.id !== d.id) return { ok: false, message: "This URL slug is already used.", fieldErrors: { slug: "Choose a unique slug." } };
+
   if (d.id) {
     const id = d.id;
     const existing = await prisma.blogPost.findUnique({ where: { id }, select: { publishedAt: true } });

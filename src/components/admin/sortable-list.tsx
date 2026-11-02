@@ -2,10 +2,10 @@
 
 import * as React from "react";
 import {
-  DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  SortableContext, verticalListSortingStrategy, useSortable, arrayMove,
+  SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
@@ -21,20 +21,24 @@ export function SortableList<T extends { id: string }>({ items, onReorder, rende
   const [order, setOrder] = React.useState(items);
   React.useEffect(() => setOrder(items), [items]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const saving = React.useRef(false);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over || active.id === over.id || saving.current) return;
     const oldIndex = order.findIndex((i) => i.id === active.id);
     const newIndex = order.findIndex((i) => i.id === over.id);
     const next = arrayMove(order, oldIndex, newIndex);
     setOrder(next);
-    const res = await onReorder(next.map((i) => i.id));
-    if (!res.ok) {
-      toast.error(res.message ?? "Could not save order.");
-      setOrder(items);
-    }
+    saving.current = true;
+    try {
+      const res = await onReorder(next.map((i) => i.id));
+      if (!res.ok) throw new Error(res.message ?? "Could not save order.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save order.");
+      setOrder(order);
+    } finally { saving.current = false; }
   }
 
   return (
@@ -62,14 +66,14 @@ function SortableRow({ id, children }: { id: string; children: React.ReactNode }
     >
       <button
         type="button"
-        className="flex h-full cursor-grab items-center px-2 text-stone-300 hover:text-stone-500 active:cursor-grabbing"
+        className="flex h-full touch-none cursor-grab items-center px-2 text-stone-300 hover:text-stone-500 active:cursor-grabbing"
         {...attributes}
         {...listeners}
         aria-label="Drag to reorder"
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <div className="flex-1">{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }

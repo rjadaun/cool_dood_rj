@@ -11,12 +11,19 @@ const securityHeaders = [
   },
 ];
 
+const customImageOrigin = process.env.STORAGE_PUBLIC_URL || process.env.STORAGE_ENDPOINT;
+const customImagePatterns = customImageOrigin ? (() => {
+  const url = new URL(customImageOrigin);
+  return [{ protocol: url.protocol.replace(":", "") as "http" | "https", hostname: url.hostname, port: url.port }];
+})() : [];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
+      ...customImagePatterns,
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "picsum.photos" },
       { protocol: "https", hostname: "fastly.picsum.photos" },

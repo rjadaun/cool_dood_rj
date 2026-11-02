@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import {
-  DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
+  DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from "@dnd-kit/sortable";
+import { SortableContext, rectSortingStrategy, sortableKeyboardCoordinates, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, X, ImagePlus, EyeOff, Eye } from "lucide-react";
 import { MediaPicker, type MediaItem } from "@/components/admin/media/media-picker";
@@ -32,7 +32,7 @@ const nextKey = () => `g${Date.now()}_${uid++}`;
 export function GalleryEditor({ name, defaultImages = [] }: { name: string; defaultImages?: GalleryImage[] }) {
   const [images, setImages] = React.useState<GalleryImage[]>(defaultImages);
   const [pickerOpen, setPickerOpen] = React.useState(false);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   const update = (key: string, patch: Partial<GalleryImage>) =>
     setImages((prev) => prev.map((img) => (img.key === key ? { ...img, ...patch } : img)));
@@ -45,7 +45,7 @@ export function GalleryEditor({ name, defaultImages = [] }: { name: string; defa
         key: nextKey(),
         mediaId: m.id,
         url: m.url,
-        caption: "",
+        caption: m.caption ?? "",
         altText: m.altText ?? "",
         focal: "CENTER",
         aspect: "ORIGINAL",
@@ -92,7 +92,7 @@ export function GalleryEditor({ name, defaultImages = [] }: { name: string; defa
       ) : (
         <>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
-            <SortableContext items={images.map((i) => i.key)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={images.map((i) => i.key)} strategy={rectSortingStrategy}>
               <div className="space-y-3">
                 {images.map((img) => (
                   <GalleryRow key={img.key} img={img} onUpdate={update} onRemove={remove} />

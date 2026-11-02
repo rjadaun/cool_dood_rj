@@ -1,3 +1,4 @@
+import { mediaPage } from "@/lib/media/shared";
 import Link from "next/link";
 import { Plus, FolderKanban } from "lucide-react";
 import type { Prisma } from "@prisma/client";
@@ -17,14 +18,14 @@ export default async function PortfolioAdminPage({
   searchParams: Promise<{ q?: string; category?: string; status?: string; featured?: string; page?: string }>;
 }) {
   const sp = await searchParams;
-  const page = Math.max(1, Number(sp.page) || 1);
+  const page = mediaPage(sp.page ?? null);
 
   const where: Prisma.PortfolioProjectWhereInput = {
     ...(sp.q
       ? { OR: [{ title: { contains: sp.q, mode: "insensitive" } }, { description: { contains: sp.q, mode: "insensitive" } }] }
       : {}),
     ...(sp.category ? { category: { slug: sp.category } } : {}),
-    ...(sp.status ? { status: sp.status as Prisma.EnumPublishStatusFilter["equals"] } : {}),
+    ...(sp.status && ["DRAFT", "PUBLISHED", "ARCHIVED"].includes(sp.status) ? { status: sp.status as Prisma.EnumPublishStatusFilter["equals"] } : {}),
     ...(sp.featured === "1" ? { featured: true } : {}),
   };
 

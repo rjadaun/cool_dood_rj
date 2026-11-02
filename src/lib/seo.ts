@@ -1,3 +1,4 @@
+import { getRoutePage } from "@/lib/queries/public";
 import type { Metadata } from "next";
 import { getSettings } from "@/lib/queries/settings";
 import { absoluteUrl } from "@/lib/utils";
@@ -43,4 +44,9 @@ export async function buildMetadata(input: BuildMetaInput = {}): Promise<Metadat
       images: image ? [image] : undefined,
     },
   };
+}
+
+export async function buildPageMetadata(slug: string, title: string, description?: string): Promise<Metadata> {
+  const page = await getRoutePage(slug);
+  return buildMetadata({ title: page?.seoTitle || title, description: page?.seoDescription || page?.subheading || description, path: `/${slug}` });
 }

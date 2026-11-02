@@ -1,3 +1,4 @@
+import { mediaPage } from "@/lib/media/shared";
 import Link from "next/link";
 import { Download, Search, Mail, Users, UserCheck } from "lucide-react";
 import type { Prisma } from "@prisma/client";
@@ -20,7 +21,7 @@ export default async function NewsletterPage({
 }) {
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q.trim() : "";
-  const page = Math.max(1, Number(sp.page) || 1);
+  const page = mediaPage(sp.page ?? null);
 
   const where: Prisma.NewsletterSubscriberWhereInput = q
     ? { email: { contains: q, mode: "insensitive" } }

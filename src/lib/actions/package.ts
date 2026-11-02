@@ -42,13 +42,7 @@ export async function savePackage(_prev: FormResult, formData: FormData): Promis
 
   if (d.id) {
     const id = d.id;
-    await prisma.package.update({ where: { id }, data });
-    await prisma.packageFeature.deleteMany({ where: { packageId: id } });
-    if (d.features.length) {
-      await prisma.packageFeature.createMany({
-        data: d.features.map((label, i) => ({ packageId: id, label, sortOrder: i })),
-      });
-    }
+    await prisma.package.update({ where: { id }, data: { ...data, features: { deleteMany: {}, create: d.features.map((label, i) => ({ label, sortOrder: i })) } } });
     await logActivity({ userId: user.id, action: "update", entity: "Package", entityId: id, summary: d.name });
   } else {
     const count = await prisma.package.count();

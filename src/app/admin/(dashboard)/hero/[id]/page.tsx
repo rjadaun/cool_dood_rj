@@ -5,6 +5,7 @@ import { HeroForm } from "@/components/admin/hero/hero-form";
 
 export default async function EditHeroSlidePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const slide = await prisma.heroSlide.findUnique({ where: { id }, include: { image: true } });
   if (!slide) notFound();
 

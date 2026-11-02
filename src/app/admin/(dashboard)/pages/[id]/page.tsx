@@ -6,6 +6,7 @@ import { PageSectionsEditor } from "@/components/admin/pages/page-sections-edito
 
 export default async function EditPagePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const page = await prisma.page.findUnique({
     where: { id },
     include: { sections: { orderBy: { sortOrder: "asc" } }, image: true },

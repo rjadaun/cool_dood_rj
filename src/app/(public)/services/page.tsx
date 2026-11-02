@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
-import { buildMetadata } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import { getServices } from "@/lib/queries/public";
-import { PageHero } from "@/components/public/page-hero";
+import { CmsPageIntro } from "@/components/public/cms-page-intro";
 import { MediaImage } from "@/components/shared/media-image";
 import { Reveal } from "@/components/shared/reveal";
 import { CtaSection } from "@/components/public/sections/cta-section";
@@ -11,11 +11,7 @@ import { CtaSection } from "@/components/public/sections/cta-section";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({
-    title: "Services",
-    description: "Full-service creative photography, from concept to final frame.",
-    path: "/services",
-  });
+  return buildPageMetadata("services", "Services", "Full-service creative photography, from concept to final frame.");
 }
 
 export default async function ServicesPage() {
@@ -23,7 +19,7 @@ export default async function ServicesPage() {
 
   return (
     <>
-      <PageHero
+      <CmsPageIntro slug="services"
         label="Services"
         title="Full-service creative support."
         description="From a single portrait to a full brand campaign, considered work at every scale."

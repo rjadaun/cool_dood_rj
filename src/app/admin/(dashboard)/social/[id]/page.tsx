@@ -5,6 +5,7 @@ import { SocialForm } from "@/components/admin/social/social-form";
 
 export default async function EditSocialPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const link = await prisma.socialLink.findUnique({ where: { id } });
   if (!link) notFound();
 

@@ -5,6 +5,7 @@ import { ClientForm } from "@/components/admin/clients/client-form";
 
 export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const client = await prisma.client.findUnique({ where: { id }, include: { logo: true, logoDark: true } });
   if (!client) notFound();
 

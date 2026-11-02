@@ -5,6 +5,7 @@ import { ServiceForm } from "@/components/admin/service/service-form";
 
 export default async function EditServicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const service = await prisma.service.findUnique({
     where: { id },
     include: { image: true, features: true },

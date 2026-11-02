@@ -80,6 +80,7 @@ export function ProjectGallery({ images, layout }: { images: Img[]; layout: Gall
               counter += 1;
               const index = counter;
               const ratio =
+                img.aspect === "SQUARE" ? 1 : img.aspect === "PORTRAIT" ? 4 / 5 : img.aspect === "LANDSCAPE" ? 3 / 2 : img.aspect === "PANORAMIC" ? 21 / 9 :
                 img.media.width && img.media.height ? img.media.width / img.media.height : row.length === 1 ? 1.5 : 0.8;
               return (
                 <button
@@ -91,7 +92,7 @@ export function ProjectGallery({ images, layout }: { images: Img[]; layout: Gall
                 >
                   <MediaImage
                     media={img.media}
-                    alt={img.altText ?? ""}
+                    alt={img.altText || img.media.altText || ""}
                     focal={img.focal}
                     sizes={row.length === 1 ? "100vw" : "(max-width:768px) 100vw, 50vw"}
                     className="transition-transform duration-700 ease-editorial group-hover:scale-[1.03]"
@@ -155,8 +156,8 @@ export function ProjectGallery({ images, layout }: { images: Img[]; layout: Gall
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={images[active]!.media.url}
-                alt={images[active]!.altText ?? ""}
-                className="max-h-[85vh] w-auto object-contain"
+                alt={images[active]!.altText || images[active]!.media.altText || ""}
+                className="max-h-[80dvh] max-w-full w-auto object-contain"
               />
               {images[active]!.caption && (
                 <p className="mt-3 text-center text-sm text-paper/60">{images[active]!.caption}</p>

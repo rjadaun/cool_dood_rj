@@ -5,6 +5,7 @@ import { TestimonialForm } from "@/components/admin/testimonials/testimonial-for
 
 export default async function EditTestimonialPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const testimonial = await prisma.testimonial.findUnique({ where: { id }, include: { image: true } });
   if (!testimonial) notFound();
 

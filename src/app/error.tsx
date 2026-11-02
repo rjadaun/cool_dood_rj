@@ -21,7 +21,7 @@ export default function GlobalError({
         An unexpected error occurred.
       </h1>
       <p className="mt-5 max-w-md text-ink/60">
-        We've been notified. You can try again, or head back to the homepage.
+        We&apos;ve been notified. You can try again, or head back to the homepage.
       </p>
       <div className="mt-10 flex gap-4">
         <Button onClick={reset}>Try again</Button>

@@ -1,10 +1,11 @@
+import { PageSections } from "./cms-page-intro";
 import { notFound } from "next/navigation";
-import { getPageBySlug } from "@/lib/queries/public";
+import { getRoutePage } from "@/lib/queries/public";
 import { PageHero } from "@/components/public/page-hero";
 import { formatDate } from "@/lib/utils";
 
 export async function LegalPage({ slug }: { slug: string }) {
-  const page = await getPageBySlug(slug);
+  const page = await getRoutePage(slug);
   if (!page) notFound();
   return (
     <>
@@ -15,6 +16,7 @@ export async function LegalPage({ slug }: { slug: string }) {
           Last updated {formatDate(page.updatedAt)}.
         </p>
       </section>
+      <PageSections sections={page.sections} />
     </>
   );
 }

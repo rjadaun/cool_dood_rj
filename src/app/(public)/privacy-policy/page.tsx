@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { buildMetadata } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
 import { LegalPage } from "@/components/public/legal-page";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({ title: "Privacy Policy", path: "/privacy-policy" });
+  return buildPageMetadata("privacy-policy", "Privacy Policy");
 }
 
 export default function Page() {

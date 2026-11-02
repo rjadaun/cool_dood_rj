@@ -10,19 +10,25 @@ import type { PutObjectInput, PutObjectResult, StorageProvider } from "./types";
 export class LocalStorageProvider implements StorageProvider {
   private root = path.join(process.cwd(), "storage");
 
+  private resolveKey(key: string): string {
+    const resolved = path.resolve(this.root, key);
+    if (!resolved.startsWith(path.resolve(this.root) + path.sep)) throw new Error("Invalid key");
+    return resolved;
+  }
+
   publicUrl(key: string): string {
     return `/api/files/${key.split("/").map(encodeURIComponent).join("/")}`;
   }
 
   async put({ key, body }: PutObjectInput): Promise<PutObjectResult> {
-    const filePath = path.join(this.root, key);
+    const filePath = this.resolveKey(key);
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await fs.writeFile(filePath, body);
     return { key, url: this.publicUrl(key) };
   }
 
   async remove(key: string): Promise<void> {
-    const filePath = path.join(this.root, key);
+    const filePath = this.resolveKey(key);
     try {
       await fs.unlink(filePath);
     } catch (err) {
@@ -32,12 +38,7 @@ export class LocalStorageProvider implements StorageProvider {
 
   /** Read a stored file (used by the file-serving route). */
   async read(key: string): Promise<Buffer> {
-    const filePath = path.join(this.root, key);
-    // Prevent path traversal outside the storage root.
-    const resolved = path.resolve(filePath);
-    if (!resolved.startsWith(path.resolve(this.root))) {
-      throw new Error("Invalid key");
-    }
-    return fs.readFile(resolved);
+    const filePath = this.resolveKey(key);
+    return fs.readFile(filePath);
   }
 }

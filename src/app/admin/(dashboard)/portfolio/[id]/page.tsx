@@ -5,6 +5,7 @@ import { PortfolioForm } from "@/components/admin/portfolio/portfolio-form";
 
 export default async function EditPortfolioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  if (!/^[a-f0-9]{24}$/i.test(id)) notFound();
   const [project, categories, clients] = await Promise.all([
     prisma.portfolioProject.findUnique({
       where: { id },

@@ -1,12 +1,6 @@
+import { csvCell as cell } from "@/lib/csv";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-
-/** Escape a single CSV cell (RFC 4180 style). */
-function cell(value: unknown): string {
-  if (value === null || value === undefined) return "";
-  const s = value instanceof Date ? value.toISOString() : String(value);
-  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
 
 export async function GET() {
   const session = await auth();

@@ -27,6 +27,7 @@ export async function saveUser(_prev: FormResult, formData: FormData): Promise<F
     return { ok: false, message: "Please fix the highlighted fields.", fieldErrors: fieldErrorsFromZod(parsed.error) };
   }
   const d = parsed.data;
+  if (admin.role !== "SUPER_ADMIN" && d.role === "SUPER_ADMIN") return { ok: false, message: "Only a super admin can assign that role." };
   const password = d.password && d.password.length ? d.password : null;
 
   // Password is required when creating a new user.
@@ -43,6 +44,9 @@ export async function saveUser(_prev: FormResult, formData: FormData): Promise<F
   if (d.id) {
     const existing = await prisma.user.findUnique({ where: { id: d.id } });
     if (!existing) return { ok: false, message: "User not found." };
+
+    if (admin.role !== "SUPER_ADMIN" && existing.role === "SUPER_ADMIN") return { ok: false, message: "Only a super admin can edit another super admin." };
+    if (admin.id === d.id && (d.role !== admin.role || d.status !== "ACTIVE")) return { ok: false, message: "You cannot change your own role or disable your account." };
 
     // Guard: don't let the last active SUPER_ADMIN be demoted or disabled.
     const wasActiveSuper = existing.role === "SUPER_ADMIN" && existing.status === "ACTIVE";
@@ -88,6 +92,8 @@ export async function deleteUser(id: string): Promise<FormResult> {
 
     const target = await prisma.user.findUnique({ where: { id } });
     if (!target) return { ok: false, message: "User not found." };
+
+    if (admin.role !== "SUPER_ADMIN" && target.role === "SUPER_ADMIN") return { ok: false, message: "Only a super admin can delete another super admin." };
 
     if (target.role === "SUPER_ADMIN" && target.status === "ACTIVE" && (await activeSuperAdminCount()) <= 1) {
       return { ok: false, message: "You can't delete the last super admin." };
