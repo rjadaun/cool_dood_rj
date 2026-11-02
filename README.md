@@ -214,7 +214,7 @@ no rebuilds required.
 - Passwords hashed with bcrypt (cost 12); JWT sessions.
 - Server-side authorization on every mutating action (RBAC).
 - Admin routes protected by middleware + per-page guards.
-- Zod validation on client and server; rich text sanitized (DOMPurify).
+- Zod validation on client and server; rich text sanitized on the server (sanitize-html).
 - Rate limiting + honeypots on public forms.
 - Secure HTTP headers; ORM-parameterized queries; upload type/size validation.
 
@@ -245,6 +245,8 @@ npm test
 npm run test:integration
 # Also run a production build against the isolated test database:
 node tests/admin-integration.mjs --build
+# Exercise production server actions with CommonJS-to-ESM loading disabled:
+node tests/admin-integration.mjs --production
 ```
 
 Integration tests start a disposable local MongoDB replica set and a local Next.js

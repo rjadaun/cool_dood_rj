@@ -1,5 +1,33 @@
 # Project audit — 2 November 2026
 
+## Follow-up: journal save failure after deployment
+
+The authenticated Vercel runtime logs showed `ERR_REQUIRE_ESM` on
+`/admin/journal/new` at 15:34:50 on 2 November, with the same failure on `/`.
+`isomorphic-dompurify` loaded jsdom, whose `html-encoding-sniffer` dependency tried
+to require the ES module `@exodus/bytes/encoding-lite.js`. This was reproduced
+locally with `node --no-experimental-require-module`.
+
+- Replaced the production DOM sanitizer with `sanitize-html`, retaining the
+  editorial HTML allowlist and blocking scripts, unsafe URL schemes and event
+  handlers. New-tab links receive `noopener noreferrer`.
+- Kept jsdom only as a development dependency for the HTTP test harness. Neither
+  the homepage nor journal editor production file traces include the incompatible
+  dependency chain.
+- Journal saves now return recoverable feedback for duplicate slugs, missing
+  covers/posts and unexpected persistence errors, with a reference for server logs.
+  Admin forms show persistent error messages and prevent automatic input resets.
+- `npm test`: 14 tests passed; type checking and lint passed.
+- `node tests/admin-integration.mjs --production`: production build and 106 HTTP
+  integration checks passed with CommonJS-to-ESM loading disabled in the server.
+  Journal coverage includes create/edit, publishing with a cover and sanitized
+  content, public rendering, duplicate slugs and deleted covers.
+
+This follow-up is implemented locally and still requires a new deployment,
+including `package.json` and `package-lock.json`. No production content was
+created or modified. No database migration is needed. The initial audit below
+records the earlier pass and its verification limits.
+
 ## Outcome and scope
 
 Code changes are implemented locally. The live domain returned HTTP 200 and its

@@ -70,7 +70,14 @@ try {
   const project=await prisma.portfolioProject.create({data:{title:'Audit project',slug:'audit-project',status:'PUBLISHED',categoryId:category.id,coverId:image.id,images:{create:{mediaId:image.id}}}});
   const page=await prisma.page.create({data:{slug:'about',title:'About'}});
   await prisma.page.createMany({data:[{slug:'privacy-policy',title:'Privacy Policy',content:'<p>Test privacy page</p>'},{slug:'terms',title:'Terms',content:'<p>Test terms page</p>'}]});
-  server=spawn(process.execPath,['node_modules/next/dist/bin/next','dev','--hostname','127.0.0.1','--port',String(port)],{env,stdio:['ignore','pipe','pipe']});
+  const production = process.argv.includes('--production');
+  if (production) {
+    env.NODE_ENV = 'production';
+    console.log('Building production bundle for runtime integration checks…');
+    await command(['node_modules/next/dist/bin/next', 'build'], env);
+  }
+  // Match the Vercel runtime that rejected jsdom's CommonJS -> ESM dependency.
+  server=spawn(process.execPath,[...(production ? ['--no-experimental-require-module'] : []),'node_modules/next/dist/bin/next',production ? 'start' : 'dev','--hostname','127.0.0.1','--port',String(port)],{env,stdio:['ignore','pipe','pipe']});
   server.stdout.on('data',d=>log+=d); server.stderr.on('data',d=>log+=d);
   let ready=false;
   for(let attempt=0;attempt<90;attempt++) { try { if((await request('/api/auth/csrf',{},false)).ok) {ready=true;break;} } catch {} await new Promise(r=>setTimeout(r,1000)); }
@@ -134,6 +141,23 @@ try {
     if(section==='packages') assert.equal(await prisma.packageFeature.count({where:{packageId:record.id}}),2);
     check(`edit and persist ${section}`);
   }
+  const publishedJournal=await submit('/admin/journal/new',{title:'Published journal',slug:'published-journal',coverId:image.id,status:'PUBLISHED',content:'<h2>Journal story</h2><p>Safe <strong>formatting</strong></p><script>unsafeJournal()</script>'},'title');
+  assert.equal(publishedJournal.status,303);
+  const publishedPost=await prisma.blogPost.findUnique({where:{slug:'published-journal'}});
+  assert.equal(publishedPost.coverId,image.id);assert.ok(publishedPost.publishedAt);
+  assert.match(publishedPost.content,/<strong>formatting<\/strong>/);assert.ok(!publishedPost.content.includes('unsafeJournal'));
+  check('publish journal with cover and sanitized rich text');
+  const journalResponse=await request('/journal/published-journal',{},false);
+  assert.equal(journalResponse.status,200);assert.ok((await journalResponse.text()).includes('Journal story'));
+  check('published journal renders publicly');
+  const duplicateJournal=await submit('/admin/journal/new',{title:'Duplicate journal',slug:'published-journal'},'title');
+  assert.equal(duplicateJournal.status,200);assert.match(duplicateJournal.text,/This URL slug is already used/);
+  assert.equal(await prisma.blogPost.count({where:{slug:'published-journal'}}),1);
+  check('duplicate journal slug displays recoverable feedback');
+  const deletedCover=await submit('/admin/journal/new',{title:'Missing cover',slug:'missing-cover',coverId:'000000000000000000000001'},'title');
+  assert.equal(deletedCover.status,200);assert.match(deletedCover.text,/selected cover image no longer exists/);
+  assert.equal(await prisma.blogPost.count({where:{slug:'missing-cover'}}),0);
+  check('deleted journal cover displays recoverable feedback');
   const duplicate=await submit('/admin/categories/new',{name:'Duplicate',slug:'saved-category'});
   assert.equal(duplicate.status,200);assert.equal(await prisma.category.count({where:{slug:'saved-category'}}),1);check('duplicate slug returns validation without creating a duplicate');
   const settings=await submit('/admin/settings',{siteName:'Updated studio'},'siteName');assert.equal(settings.status,303);assert.equal((await prisma.siteSetting.findUnique({where:{id:'singleton'}})).siteName,'Updated studio');check('save site settings');

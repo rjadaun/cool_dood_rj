@@ -51,7 +51,14 @@ export function AdminForm({
   const errors = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className={cn("space-y-8", className)}>
+    <form
+      action={formAction}
+      // React also resets uncontrolled inputs when an action returns validation errors.
+      // Keep the editor's values available for correction and resubmission.
+      onReset={(event) => event.preventDefault()}
+      className={cn("space-y-8", className)}
+    >
+      {state.message && !state.ok && <div role="alert" className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{state.message}</div>}
       {hiddenId && <input type="hidden" name="id" value={hiddenId} />}
       {typeof children === "function" ? children(errors) : children}
 

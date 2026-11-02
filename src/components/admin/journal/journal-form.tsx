@@ -28,6 +28,8 @@ export function JournalForm({ post }: { post?: Post }) {
                   <Input
                     id="title"
                     name="title"
+                    required
+                    maxLength={200}
                     defaultValue={post?.title ?? ""}
                     placeholder="A refined perspective on editorial photography"
                     onChange={(e) => {
@@ -68,7 +70,9 @@ export function JournalForm({ post }: { post?: Post }) {
 
           <div className="space-y-6">
             <AdminCard title="Cover image">
-              <ImageField name="coverId" defaultValue={post?.cover ?? null} folder="journal" aspect="aspect-[3/2]" />
+              <Field error={errors.coverId}>
+                <ImageField name="coverId" defaultValue={post?.cover ?? null} folder="journal" aspect="aspect-[3/2]" />
+              </Field>
             </AdminCard>
 
             <AdminCard title="Details">
