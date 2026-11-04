@@ -9,19 +9,31 @@ import { CtaSection } from "@/components/public/sections/cta-section";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildPageMetadata("packages", "Packages", "Transparent starting points for portrait, editorial and commercial work.");
+  return buildPageMetadata(
+    "packages",
+    "Packages",
+    "Transparent starting points for portrait, editorial and commercial work.",
+  );
 }
 
 export default async function PackagesPage() {
-  const [packages, settings] = await Promise.all([getPackages(), getSettings()]);
+  const [packages, settings] = await Promise.all([
+    getPackages(),
+    getSettings(),
+  ]);
   return (
     <>
-      <CmsPageIntro slug="packages"
+      <CmsPageIntro
+        slug="packages"
         label="Investment"
         title="Packages & pricing."
         description="Clear starting points, every project is tailored to its brief."
       />
-      <PackagesSection packages={packages} showPricing={settings.showPricingPublic} />
+      <PackagesSection
+        showHeader={false}
+        packages={packages}
+        showPricing={settings.showPricingPublic}
+      />
       <CtaSection />
     </>
   );

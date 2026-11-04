@@ -11,7 +11,12 @@ interface IntroSectionProps {
   image?: Media | null;
 }
 
-export function IntroSection({ label, heading, content, image }: IntroSectionProps) {
+export function IntroSection({
+  label,
+  heading,
+  content,
+  image,
+}: IntroSectionProps) {
   const hasImage = !!image?.url;
 
   const body = (
@@ -34,14 +39,17 @@ export function IntroSection({ label, heading, content, image }: IntroSectionPro
 
       {content ? (
         <Reveal delay={0.12}>
-          <div className="prose-editorial mt-6 text-ink/75" dangerouslySetInnerHTML={{ __html: content }} />
+          <div
+            className="prose-editorial mt-6 text-ink/75"
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
         </Reveal>
       ) : null}
 
       <Reveal delay={0.16}>
         <Link
           href="/about"
-          className="link-underline mt-8 inline-flex items-center gap-2 text-sm font-medium uppercase tracking-wide text-ink"
+          className="link-underline mt-8 inline-flex items-center gap-2 text-sm font-medium tracking-normal text-ink"
         >
           More about the studio <ArrowRight className="h-4 w-4" />
         </Link>
@@ -50,16 +58,16 @@ export function IntroSection({ label, heading, content, image }: IntroSectionPro
   );
 
   return (
-    <section className="container-editorial py-20 md:py-28">
+    <section className="container-editorial section-space">
       {hasImage ? (
         <div className="grid grid-cols-1 gap-10 md:grid-cols-12 md:items-start md:gap-16">
           <Reveal className="md:col-span-5">
-            <figure className="relative aspect-[4/5] overflow-hidden bg-stone-100">
+            <figure className="relative overflow-hidden">
               <MediaImage
+                fill={false}
                 media={image}
                 alt={label || "Photographer portrait"}
                 sizes="(max-width:768px) 100vw, 40vw"
-                className="transition-transform duration-[1200ms] ease-editorial hover:scale-[1.03]"
               />
             </figure>
           </Reveal>

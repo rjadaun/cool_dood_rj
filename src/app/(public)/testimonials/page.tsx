@@ -10,15 +10,23 @@ import { CtaSection } from "@/components/public/sections/cta-section";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildPageMetadata("testimonials", "Testimonials", "What clients say about working with the studio.");
+  return buildPageMetadata(
+    "testimonials",
+    "Testimonials",
+    "What clients say about working with the studio.",
+  );
 }
 
 export default async function TestimonialsPage() {
   const testimonials = await getTestimonials();
   return (
     <>
-      <CmsPageIntro slug="testimonials" label="Testimonials" title="In their words." />
-      <section className="container-editorial py-20 md:py-24">
+      <CmsPageIntro
+        slug="testimonials"
+        label="Testimonials"
+        title="In their words."
+      />
+      <section className="container-editorial section-space">
         <div className="columns-1 gap-8 md:columns-2 lg:columns-2 [&>*]:mb-8 [&>*]:break-inside-avoid">
           {testimonials.map((t, i) => (
             <Reveal key={t.id} delay={(i % 2) * 0.06}>
@@ -26,7 +34,10 @@ export default async function TestimonialsPage() {
                 {t.rating ? (
                   <div className="mb-5 flex gap-1">
                     {Array.from({ length: t.rating }).map((_, k) => (
-                      <Star key={k} className="h-4 w-4 fill-accent text-accent" />
+                      <Star
+                        key={k}
+                        className="h-4 w-4 fill-accent text-accent"
+                      />
                     ))}
                   </div>
                 ) : null}
@@ -41,7 +52,9 @@ export default async function TestimonialsPage() {
                   )}
                   <div>
                     <div className="text-sm font-medium text-ink">{t.name}</div>
-                    <div className="text-xs text-stone-500">{[t.role, t.company].filter(Boolean).join(", ")}</div>
+                    <div className="text-xs text-stone-500">
+                      {[t.role, t.company].filter(Boolean).join(", ")}
+                    </div>
                   </div>
                 </figcaption>
               </figure>

@@ -1,33 +1,30 @@
 import type { Client, Media } from "@prisma/client";
 import { MediaImage } from "@/components/shared/media-image";
-import { Reveal } from "@/components/shared/reveal";
-import { Marquee } from "@/components/shared/marquee";
 
 type ClientWithLogo = Client & { logo: Media | null; logoDark: Media | null };
-
 export function ClientsSection({ clients }: { clients: ClientWithLogo[] }) {
-  if (clients.length === 0) return null;
+  if (!clients.length) return null;
   return (
-    <section className="overflow-hidden py-20">
-      <Reveal>
-        <p className="label mb-12 text-center text-accent-deep">Trusted by</p>
-      </Reveal>
-      <Marquee speed={38}>
+    <section className="container-editorial clients-section">
+      <p className="section-label">Selected clients</p>
+      <div className="client-list">
         {clients.map((client) => (
-          <div
-            key={client.id}
-            className="flex shrink-0 items-center opacity-50 grayscale transition-all duration-500 hover:opacity-100 hover:grayscale-0"
-          >
+          <div key={client.id}>
             {client.logo ? (
-              <div className="relative h-9 w-32">
-                <MediaImage media={client.logo} alt={client.name} fill sizes="128px" className="!object-contain" />
+              <div className="relative h-10 w-28">
+                <MediaImage
+                  media={client.logo}
+                  alt={client.name}
+                  sizes="112px"
+                  className="object-contain"
+                />
               </div>
             ) : (
-              <span className="whitespace-nowrap font-serif text-2xl tracking-wide text-ink">{client.name}</span>
+              <span>{client.name}</span>
             )}
           </div>
         ))}
-      </Marquee>
+      </div>
     </section>
   );
 }

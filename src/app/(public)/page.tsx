@@ -70,19 +70,41 @@ export default async function HomePage() {
   const processSteps = home?.sections.filter((s) => s.key === "process") ?? [];
   const cta = home?.sections.find((s) => s.key === "cta");
 
-  const visible = sections.filter((s) => s.visible).sort((a, b) => a.sortOrder - b.sortOrder);
+  const visible = sections
+    .filter((s) => s.visible)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
   // Fallback order if HomeSection table is empty.
   const order = sections.length
     ? visible.map((s) => s.key)
     : ([
-        "HERO", "ABOUT", "STATS", "CATEGORIES", "FEATURED_WORK", "PROCESS", "SERVICES",
-        "SELECTED_WORK", "CLIENTS", "TESTIMONIALS", "AWARDS", "PACKAGES", "SOCIAL",
-        "NEWSLETTER", "CTA",
+        "HERO",
+        "ABOUT",
+        "STATS",
+        "CATEGORIES",
+        "FEATURED_WORK",
+        "PROCESS",
+        "SERVICES",
+        "SELECTED_WORK",
+        "CLIENTS",
+        "TESTIMONIALS",
+        "AWARDS",
+        "PACKAGES",
+        "SOCIAL",
+        "NEWSLETTER",
+        "CTA",
       ] as const);
 
   const render: Record<string, React.ReactNode> = {
     HERO: <HeroSlider key="hero" slides={slides} />,
-    ABOUT: <IntroSection key="about" label={home?.subheading} heading={home?.heading} content={home?.content} image={home?.image} />,
+    ABOUT: (
+      <IntroSection
+        key="about"
+        label={home?.subheading}
+        heading={home?.heading}
+        content={home?.content}
+        image={home?.image}
+      />
+    ),
     STATS: <StatsSection key="stats" stats={stats} />,
     CATEGORIES: <CategoriesSection key="categories" categories={categories} />,
     FEATURED_WORK: <FeaturedWorkSection key="featured" projects={featured} />,
@@ -90,15 +112,43 @@ export default async function HomePage() {
     SERVICES: <ServicesSection key="services" services={services} />,
     SELECTED_WORK: <SelectedWorkSection key="selected" projects={selected} />,
     CLIENTS: <ClientsSection key="clients" clients={clients} />,
-    TESTIMONIALS: <TestimonialsSection key="testimonials" testimonials={testimonials} />,
+    TESTIMONIALS: (
+      <TestimonialsSection key="testimonials" testimonials={testimonials} />
+    ),
     AWARDS: <AwardsSection key="awards" awards={awards} />,
-    PACKAGES: settings.showPricingPublic || packages.length ? (
-      <PackagesSection key="packages" packages={packages} showPricing={settings.showPricingPublic} />
-    ) : null,
+    PACKAGES:
+      settings.showPricingPublic || packages.length ? (
+        <PackagesSection
+          key="packages"
+          packages={packages}
+          showPricing={settings.showPricingPublic}
+        />
+      ) : null,
     SOCIAL: <SocialSection key="social" socials={socials} />,
-    NEWSLETTER: settings.newsletterEnabled ? <NewsletterSection key="newsletter" /> : null,
-    CTA: <CtaSection key="cta" heading={cta?.heading} body={cta?.body} ctaText={cta?.ctaText} ctaUrl={cta?.ctaUrl} />,
+    NEWSLETTER: settings.newsletterEnabled ? (
+      <NewsletterSection key="newsletter" />
+    ) : null,
+    CTA: (
+      <CtaSection
+        key="cta"
+        heading={cta?.heading}
+        body={cta?.body}
+        ctaText={cta?.ctaText}
+        ctaUrl={cta?.ctaUrl}
+      />
+    ),
   };
 
-  return <>{order.map((key) => render[key])}<PageSections sections={home?.sections.filter((section) => !["process", "cta"].includes(section.key)) ?? []} /></>;
+  return (
+    <>
+      {order.map((key) => render[key])}
+      <PageSections
+        sections={
+          home?.sections.filter(
+            (section) => !["process", "cta"].includes(section.key),
+          ) ?? []
+        }
+      />
+    </>
+  );
 }

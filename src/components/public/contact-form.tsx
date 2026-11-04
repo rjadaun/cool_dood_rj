@@ -15,11 +15,13 @@ function Submit() {
     <button
       type="submit"
       disabled={pending}
-      className="group inline-flex h-13 items-center gap-2 bg-ink px-8 py-4 text-[13px] font-medium uppercase tracking-wide text-paper transition-colors hover:bg-ink-soft disabled:opacity-60"
+      className="group inline-flex h-13 items-center gap-2 bg-ink px-8 py-4 text-[13px] font-medium tracking-normal text-paper transition-colors hover:bg-ink-soft disabled:opacity-60"
     >
       {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
       Send Inquiry
-      {!pending && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />}
+      {!pending && (
+        <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+      )}
     </button>
   );
 }
@@ -33,12 +35,15 @@ export function ContactForm({
 }) {
   const [state, formAction] = useActionState(submitInquiry, initial);
   const formRef = useRef<HTMLFormElement>(null);
+  const allowReset = useRef(false);
 
   useEffect(() => {
     if (!state.message) return;
     if (state.ok) {
       toast.success(state.message);
+      allowReset.current = true;
       formRef.current?.reset();
+      allowReset.current = false;
     } else {
       toast.error(state.message);
     }
@@ -47,24 +52,76 @@ export function ContactForm({
   const err = state.fieldErrors ?? {};
 
   return (
-    <form ref={formRef} action={formAction} className="space-y-6">
+    <form
+      ref={formRef}
+      action={formAction}
+      className="public-inquiry space-y-6"
+      onReset={(event) => {
+        if (!allowReset.current) event.preventDefault();
+      }}
+    >
+      {state.message && (
+        <p
+          role={state.ok ? "status" : "alert"}
+          className={
+            state.ok ? "text-sm text-green-800" : "text-sm text-red-700"
+          }
+        >
+          {state.message}
+        </p>
+      )}
       {/* Honeypot */}
-      <input type="text" name="company_url" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
+      <input
+        type="text"
+        name="company_url"
+        tabIndex={-1}
+        autoComplete="off"
+        className="hidden"
+        aria-hidden
+      />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Field label="Name" htmlFor="name" required error={err.name}>
-          <Input id="name" name="name" placeholder="Your full name" autoComplete="name" />
+          <Input
+            id="name"
+            name="name"
+            required
+            placeholder="Your full name"
+            autoComplete="name"
+          />
         </Field>
         <Field label="Email" htmlFor="email" required error={err.email}>
-          <Input id="email" name="email" type="email" placeholder="you@email.com" autoComplete="email" />
+          <Input
+            id="email"
+            name="email"
+            required
+            type="email"
+            placeholder="you@email.com"
+            autoComplete="email"
+          />
         </Field>
         <Field label="Phone" htmlFor="phone" error={err.phone}>
-          <Input id="phone" name="phone" placeholder="Optional" autoComplete="tel" />
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            placeholder="Optional"
+            autoComplete="tel"
+          />
         </Field>
         <Field label="Company" htmlFor="company" error={err.company}>
-          <Input id="company" name="company" placeholder="Optional" autoComplete="organization" />
+          <Input
+            id="company"
+            name="company"
+            placeholder="Optional"
+            autoComplete="organization"
+          />
         </Field>
-        <Field label="Project type" htmlFor="projectType" error={err.projectType}>
+        <Field
+          label="Project type"
+          htmlFor="projectType"
+          error={err.projectType}
+        >
           <Select id="projectType" name="projectType" defaultValue="">
             <option value="">Select a type</option>
             {projectTypes.map((t) => (
@@ -85,7 +142,11 @@ export function ContactForm({
             ))}
           </Select>
         </Field>
-        <Field label="Preferred date" htmlFor="preferredDate" error={err.preferredDate}>
+        <Field
+          label="Preferred date"
+          htmlFor="preferredDate"
+          error={err.preferredDate}
+        >
           <Input id="preferredDate" name="preferredDate" type="date" />
         </Field>
         <Field label="Location" htmlFor="location" error={err.location}>
@@ -94,14 +155,28 @@ export function ContactForm({
       </div>
 
       <Field label="Message" htmlFor="message" required error={err.message}>
-        <Textarea id="message" name="message" rows={6} placeholder="Tell us about your project…" />
+        <Textarea
+          id="message"
+          name="message"
+          required
+          rows={5}
+          placeholder="Tell us about your project…"
+        />
       </Field>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Field label="Instagram / website" htmlFor="website" error={err.website}>
+        <Field
+          label="Instagram / website"
+          htmlFor="website"
+          error={err.website}
+        >
           <Input id="website" name="website" placeholder="Optional" />
         </Field>
-        <Field label="How did you hear about us?" htmlFor="referral" error={err.referral}>
+        <Field
+          label="How did you hear about us?"
+          htmlFor="referral"
+          error={err.referral}
+        >
           <Input id="referral" name="referral" placeholder="Optional" />
         </Field>
       </div>

@@ -7,29 +7,43 @@ import { SocialIcon } from "./social-icon";
 import { BackToTop } from "./back-to-top";
 
 export async function SiteFooter() {
-  const [settings, socials] = await Promise.all([getSettings(), getSocialLinks()]);
+  const [settings, socials] = await Promise.all([
+    getSettings(),
+    getSocialLinks(),
+  ]);
   const year = new Date().getFullYear();
 
   return (
     <footer className="border-t border-white/10 bg-ink text-paper">
-      <div className="container-editorial py-16 md:py-20">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-12">
+      <div className="container-editorial footer-space">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-12">
           {/* Brand */}
-          <div className="md:col-span-5">
-            <Link href="/" className="font-serif text-3xl font-medium">
+          <div className="col-span-2 md:col-span-5">
+            <Link href="/" className="site-brand">
               {settings.siteName}
             </Link>
             {settings.tagline && (
-              <p className="mt-4 max-w-sm text-sm leading-relaxed text-paper/60">{settings.tagline}</p>
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-paper/60">
+                {settings.tagline}
+              </p>
             )}
             <div className="mt-8 space-y-1 text-sm text-paper/60">
               {settings.email && (
-                <a href={`mailto:${settings.email}`} className="block link-underline w-fit">
+                <a
+                  href={`mailto:${settings.email}`}
+                  className="block link-underline w-fit"
+                >
                   {settings.email}
                 </a>
               )}
-              {settings.phone && <p>{settings.phone}</p>}
-              {settings.address && <p className="max-w-xs">{settings.address}</p>}
+              {settings.phone && (
+                <a className="block" href={`tel:${settings.phone}`}>
+                  {settings.phone}
+                </a>
+              )}
+              {settings.address && (
+                <p className="max-w-xs">{settings.address}</p>
+              )}
             </div>
           </div>
 
@@ -60,7 +74,7 @@ export async function SiteFooter() {
           </div>
 
           {/* Social */}
-          <div className="md:col-span-3">
+          <div className="col-span-2 md:col-span-3">
             <h3 className="label text-paper/40">Follow</h3>
             <div className="mt-4 flex flex-wrap gap-3">
               {socials.map((s) => (
@@ -79,11 +93,12 @@ export async function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 text-xs text-paper/50 md:flex-row md:items-center">
+        <div className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-white/10 pt-8 text-xs text-paper/50 md:flex-row md:items-center">
           <p>
-            © {year} {settings.copyright || settings.siteName}. All rights reserved.
+            © {year} {settings.copyright || settings.siteName}. All rights
+            reserved.
           </p>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-wrap items-center gap-5">
             {footerNav.legal.map((l) => (
               <Link key={l.href} href={l.href} className="hover:text-paper">
                 {l.label}

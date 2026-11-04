@@ -17,14 +17,14 @@ const config: Config = {
     extend: {
       colors: {
         ink: {
-          DEFAULT: "#0b0b0c", // near-black
-          soft: "#1a1a1d",
-          muted: "#3a3a3f",
+          DEFAULT: "rgb(var(--color-ink, 11 11 12) / <alpha-value>)", // near-black
+          soft: "rgb(var(--color-ink-soft, 26 26 29) / <alpha-value>)",
+          muted: "rgb(var(--color-ink-muted, 58 58 63) / <alpha-value>)",
         },
         paper: {
-          DEFAULT: "#f7f5f1", // warm off-white
+          DEFAULT: "rgb(var(--color-paper, 247 245 241) / <alpha-value>)", // warm off-white
           pure: "#ffffff",
-          dim: "#efece6",
+          dim: "rgb(var(--color-paper-dim, 239 236 230) / <alpha-value>)",
         },
         stone: {
           50: "#f6f5f3",
@@ -39,9 +39,9 @@ const config: Config = {
           900: "#1c1a17",
         },
         accent: {
-          DEFAULT: "#a8846b", // muted warm bronze
-          soft: "#c4a488",
-          deep: "#7c604b",
+          DEFAULT: "rgb(var(--color-accent, 168 132 107) / <alpha-value>)", // muted warm bronze
+          soft: "rgb(var(--color-accent-soft, 196 164 136) / <alpha-value>)",
+          deep: "rgb(var(--color-accent-deep, 124 96 75) / <alpha-value>)",
         },
         // Admin surfaces
         surface: {
@@ -56,9 +56,18 @@ const config: Config = {
         sans: ["var(--font-sans)", "system-ui", "-apple-system", "sans-serif"],
       },
       fontSize: {
-        "display-lg": ["clamp(3rem, 8vw, 7.5rem)", { lineHeight: "0.95", letterSpacing: "-0.03em" }],
-        "display": ["clamp(2.25rem, 5.5vw, 5rem)", { lineHeight: "1.0", letterSpacing: "-0.025em" }],
-        "display-sm": ["clamp(1.75rem, 3.5vw, 3rem)", { lineHeight: "1.05", letterSpacing: "-0.02em" }],
+        "display-lg": [
+          "clamp(3rem, 8vw, 7.5rem)",
+          { lineHeight: "0.95", letterSpacing: "-0.03em" },
+        ],
+        display: [
+          "clamp(2.25rem, 5.5vw, 5rem)",
+          { lineHeight: "1.0", letterSpacing: "-0.025em" },
+        ],
+        "display-sm": [
+          "clamp(1.75rem, 3.5vw, 3rem)",
+          { lineHeight: "1.05", letterSpacing: "-0.02em" },
+        ],
       },
       letterSpacing: {
         label: "0.22em",

@@ -1,171 +1,217 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { X, ArrowLeft, ArrowRight } from "lucide-react";
+import { X, ArrowLeft, ArrowRight, Expand } from "lucide-react";
 import type { GalleryLayout, Media, PortfolioImage } from "@prisma/client";
 import { MediaImage } from "@/components/shared/media-image";
-import { cn } from "@/lib/utils";
+import { imageRatio, imageRows } from "@/lib/gallery/layout";
 
-type Img = PortfolioImage & { media: Media };
+type Img = Pick<PortfolioImage, "id" | "caption" | "altText" | "aspect"> & {
+  media: Media;
+};
 
-/** Groups images into editorial rows based on the chosen layout. */
-function buildRows(images: Img[], layout: GalleryLayout): Img[][] {
-  switch (layout) {
-    case "FULL_WIDTH":
-      return images.map((i) => [i]);
-    case "TWO_COLUMN":
-      return chunk(images, 2);
-    case "THREE_COLUMN":
-      return chunk(images, 3);
-    case "PORTRAIT_LANDSCAPE":
-      return chunk(images, 2);
-    case "MIXED":
-    default: {
-      // Editorial rhythm: full, pair, full, pair…
-      const rows: Img[][] = [];
-      let i = 0;
-      let full = true;
-      while (i < images.length) {
-        if (full) {
-          rows.push([images[i]!]);
-          i += 1;
-        } else {
-          rows.push(images.slice(i, i + 2));
-          i += 2;
-        }
-        full = !full;
-      }
-      return rows;
-    }
-  }
-}
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
-
-export function ProjectGallery({ images, layout }: { images: Img[]; layout: GalleryLayout }) {
+export function ProjectGallery({
+  images,
+  layout,
+}: {
+  images: Img[];
+  layout: GalleryLayout;
+}) {
   const [active, setActive] = React.useState<number | null>(null);
-  const rows = React.useMemo(() => buildRows(images, layout), [images, layout]);
+  const dialog = React.useRef<HTMLDialogElement>(null);
+  const opener = React.useRef<HTMLButtonElement | null>(null);
+  const touchStart = React.useRef<{ x: number; y: number } | null>(null);
+  const rows = React.useMemo(
+    () => imageRows(images, (img) => imageRatio(img.media, img.aspect), layout),
+    [images, layout],
+  );
+  const isOpen = active !== null;
+  const current = active === null ? null : images[active];
+  const go = (direction: number) =>
+    setActive((index) =>
+      index === null
+        ? null
+        : (index + direction + images.length) % images.length,
+    );
 
   React.useEffect(() => {
-    if (active === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActive(null);
-      if (e.key === "ArrowRight") setActive((a) => (a === null ? a : (a + 1) % images.length));
-      if (e.key === "ArrowLeft") setActive((a) => (a === null ? a : (a - 1 + images.length) % images.length));
-    };
-    document.addEventListener("keydown", onKey);
+    const element = dialog.current;
+    if (!isOpen || !element) return;
+    const previous = opener.current;
+    const overflow = document.body.style.overflow;
+    element.showModal();
     document.body.style.overflow = "hidden";
     return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      element.close();
+      document.body.style.overflow = overflow;
+      previous?.focus({ preventScroll: true });
     };
-  }, [active, images.length]);
-
-  let counter = -1;
+  }, [isOpen]);
 
   return (
     <>
-      <div className="space-y-6 md:space-y-8">
-        {rows.map((row, ri) => (
+      <div className="image-gallery" aria-label="Project photographs">
+        {rows.map((row) => (
           <div
-            key={ri}
-            className={cn("grid gap-6 md:gap-8", row.length === 1 ? "grid-cols-1" : row.length === 3 ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2")}
+            key={row[0]!.id}
+            className="photo-row"
+            data-single={row.length === 1}
+            style={
+              {
+                "--columns": row
+                  .map((img) => `${imageRatio(img.media, img.aspect)}fr`)
+                  .join(" "),
+                "--single-width":
+                  imageRatio(row[0]!.media, row[0]!.aspect) < 1
+                    ? "760px"
+                    : "100%",
+              } as React.CSSProperties
+            }
           >
-            {row.map((img) => {
-              counter += 1;
-              const index = counter;
-              const ratio =
-                img.aspect === "SQUARE" ? 1 : img.aspect === "PORTRAIT" ? 4 / 5 : img.aspect === "LANDSCAPE" ? 3 / 2 : img.aspect === "PANORAMIC" ? 21 / 9 :
-                img.media.width && img.media.height ? img.media.width / img.media.height : row.length === 1 ? 1.5 : 0.8;
-              return (
+            {row.map((img) => (
+              <figure key={img.id} className="min-w-0">
                 <button
-                  key={img.id}
-                  onClick={() => setActive(index)}
-                  className="group relative block w-full cursor-zoom-in overflow-hidden bg-stone-100"
-                  style={{ aspectRatio: String(ratio) }}
-                  aria-label={img.caption || img.altText || "View image"}
+                  type="button"
+                  className="gallery-image group"
+                  style={{ aspectRatio: imageRatio(img.media, img.aspect) }}
+                  onClick={(event) => {
+                    opener.current = event.currentTarget;
+                    setActive(images.indexOf(img));
+                  }}
+                  aria-label={`Open photograph ${images.indexOf(img) + 1}${img.caption || img.altText ? `: ${img.caption || img.altText}` : ""}`}
+                  aria-haspopup="dialog"
                 >
                   <MediaImage
+                    priority={images.indexOf(img) < rows[0]!.length}
                     media={img.media}
-                    alt={img.altText || img.media.altText || ""}
-                    focal={img.focal}
-                    sizes={row.length === 1 ? "100vw" : "(max-width:768px) 100vw, 50vw"}
-                    className="transition-transform duration-700 ease-editorial group-hover:scale-[1.03]"
+                    alt={img.altText || img.media.altText || img.caption || ""}
+                    sizes={
+                      row.length === 1
+                        ? "(max-width: 768px) 100vw, 85vw"
+                        : "(max-width: 640px) 100vw, 60vw"
+                    }
+                    className="object-contain"
                   />
-                  {img.caption && (
-                    <span className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-ink/70 to-transparent p-4 text-xs text-paper opacity-0 transition-opacity group-hover:opacity-100">
-                      {img.caption}
-                    </span>
-                  )}
+                  <span className="project-open" aria-hidden>
+                    <Expand size={17} />
+                  </span>
                 </button>
-              );
-            })}
+                {img.caption && (
+                  <figcaption className="gallery-caption">
+                    {img.caption}
+                  </figcaption>
+                )}
+              </figure>
+            ))}
           </div>
         ))}
       </div>
-
-      {/* Lightbox */}
-      <AnimatePresence>
-        {active !== null && images[active] && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] flex items-center justify-center bg-ink/95 p-4 md:p-10"
-            onClick={() => setActive(null)}
-          >
-            <button
-              className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center text-paper/70 hover:text-paper"
-              onClick={() => setActive(null)}
-              aria-label="Close"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <button
-              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-paper/70 hover:text-paper"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActive((a) => (a === null ? a : (a - 1 + images.length) % images.length));
+      <dialog
+        ref={dialog}
+        className="photo-lightbox"
+        aria-label="Photograph viewer"
+        onCancel={() => setActive(null)}
+        onClose={() => setActive(null)}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            go(1);
+          }
+          if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            go(-1);
+          }
+          if (event.key === "Home") {
+            event.preventDefault();
+            setActive(0);
+          }
+          if (event.key === "End") {
+            event.preventDefault();
+            setActive(images.length - 1);
+          }
+        }}
+      >
+        {current && (
+          <div className="lightbox-inner">
+            <div className="lightbox-top">
+              <span aria-live="polite">
+                {active! + 1} / {images.length}
+              </span>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => setActive(null)}
+                aria-label="Close photograph viewer"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div
+              className="lightbox-stage"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) setActive(null);
               }}
-              aria-label="Previous"
-            >
-              <ArrowLeft className="h-6 w-6" />
-            </button>
-            <button
-              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-paper/70 hover:text-paper"
-              onClick={(e) => {
-                e.stopPropagation();
-                setActive((a) => (a === null ? a : (a + 1) % images.length));
+              onPointerDown={(event) => {
+                if (event.pointerType === "touch")
+                  touchStart.current = { x: event.clientX, y: event.clientY };
               }}
-              aria-label="Next"
+              onPointerCancel={() => {
+                touchStart.current = null;
+              }}
+              onPointerUp={(event) => {
+                const start = touchStart.current;
+                touchStart.current = null;
+                if (
+                  start &&
+                  Math.abs(event.clientX - start.x) > 50 &&
+                  Math.abs(event.clientY - start.y) < 80
+                )
+                  go(event.clientX < start.x ? 1 : -1);
+              }}
             >
-              <ArrowRight className="h-6 w-6" />
-            </button>
-            <motion.div
-              key={active}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="relative max-h-full max-w-5xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={images[active]!.media.url}
-                alt={images[active]!.altText || images[active]!.media.altText || ""}
-                className="max-h-[80dvh] max-w-full w-auto object-contain"
-              />
-              {images[active]!.caption && (
-                <p className="mt-3 text-center text-sm text-paper/60">{images[active]!.caption}</p>
-              )}
-            </motion.div>
-          </motion.div>
+              <div className="lightbox-photo">
+                <MediaImage
+                  key={current.id}
+                  media={current.media}
+                  alt={
+                    current.altText ||
+                    current.media.altText ||
+                    current.caption ||
+                    ""
+                  }
+                  sizes="100vw"
+                  priority
+                  className="object-contain"
+                />
+              </div>
+            </div>
+            <div className="lightbox-bottom">
+              <button
+                type="button"
+                onClick={() => go(-1)}
+                disabled={images.length < 2}
+                aria-label="Previous photograph"
+              >
+                <ArrowLeft size={22} />
+              </button>
+              <p aria-live="polite">
+                {current.caption ||
+                  current.altText ||
+                  current.media.altText ||
+                  "Use the arrows or swipe to explore"}
+              </p>
+              <button
+                type="button"
+                onClick={() => go(1)}
+                disabled={images.length < 2}
+                aria-label="Next photograph"
+              >
+                <ArrowRight size={22} />
+              </button>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
+      </dialog>
     </>
   );
 }

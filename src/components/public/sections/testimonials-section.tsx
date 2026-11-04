@@ -1,22 +1,21 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Star } from "lucide-react";
 import type { Media, Testimonial } from "@prisma/client";
 import { MediaImage } from "@/components/shared/media-image";
 
 type Item = Testimonial & { image: Media | null };
 
-export function TestimonialsSection({ testimonials }: { testimonials: Item[] }) {
+export function TestimonialsSection({
+  testimonials,
+}: {
+  testimonials: Item[];
+}) {
   const [index, setIndex] = React.useState(0);
   const count = testimonials.length;
-
-  React.useEffect(() => {
-    if (count <= 1) return;
-    const t = setTimeout(() => setIndex((i) => (i + 1) % count), 7000);
-    return () => clearTimeout(t);
-  }, [index, count]);
+  const reduce = useReducedMotion();
 
   if (count === 0) return null;
   const item = testimonials[index]!;
@@ -24,22 +23,28 @@ export function TestimonialsSection({ testimonials }: { testimonials: Item[] }) 
 
   return (
     <section className="bg-ink text-paper">
-      <div className="container-editorial py-24 md:py-32">
-        <p className="label mb-12 text-paper/50">Testimonials</p>
+      <div className="container-editorial section-space">
+        <p className="label mb-8 text-paper/50">Testimonials</p>
         <div className="grid grid-cols-1 gap-10 md:grid-cols-12">
           <div className="md:col-span-8">
             <AnimatePresence mode="wait">
               <motion.blockquote
                 key={item.id}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: reduce ? 0 : 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -16 }}
-                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                exit={{ opacity: 0, y: reduce ? 0 : -8 }}
+                transition={{
+                  duration: reduce ? 0 : 0.25,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
               >
                 {item.rating ? (
                   <div className="mb-6 flex gap-1">
                     {Array.from({ length: item.rating }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-accent-soft text-accent-soft" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-accent-soft text-accent-soft"
+                      />
                     ))}
                   </div>
                 ) : null}
@@ -49,11 +54,17 @@ export function TestimonialsSection({ testimonials }: { testimonials: Item[] }) 
                 <footer className="mt-8 flex items-center gap-4">
                   {item.image && (
                     <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                      <MediaImage media={item.image} alt={item.name} sizes="48px" />
+                      <MediaImage
+                        media={item.image}
+                        alt={item.name}
+                        sizes="48px"
+                      />
                     </div>
                   )}
                   <div>
-                    <div className="text-sm font-medium text-paper">{item.name}</div>
+                    <div className="text-sm font-medium text-paper">
+                      {item.name}
+                    </div>
                     <div className="text-xs text-paper/60">
                       {[item.role, item.company].filter(Boolean).join(", ")}
                     </div>
@@ -66,7 +77,8 @@ export function TestimonialsSection({ testimonials }: { testimonials: Item[] }) 
           {count > 1 && (
             <div className="flex items-end justify-between md:col-span-4 md:flex-col md:items-end md:justify-end md:gap-6">
               <span className="font-mono text-sm text-paper/50">
-                {String(index + 1).padStart(2, "0")} / {String(count).padStart(2, "0")}
+                {String(index + 1).padStart(2, "0")} /{" "}
+                {String(count).padStart(2, "0")}
               </span>
               <div className="flex gap-2">
                 <button

@@ -3,7 +3,7 @@ import type { SiteSetting } from "@prisma/client";
 /** Full-screen holding page shown to public visitors while maintenance mode is on. */
 export function MaintenanceScreen({ settings }: { settings: SiteSetting }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-ink px-6 text-center text-paper">
+    <div className="public-site flex min-h-screen flex-col items-center justify-center bg-ink px-6 text-center text-paper">
       <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-accent-soft">
         {settings.siteName}
       </p>
@@ -17,7 +17,7 @@ export function MaintenanceScreen({ settings }: { settings: SiteSetting }) {
       {(settings.contactEmail || settings.email) && (
         <a
           href={`mailto:${settings.contactEmail || settings.email}`}
-          className="mt-10 inline-flex h-12 items-center border border-paper/30 px-7 text-[13px] font-medium uppercase tracking-wide text-paper transition-colors hover:border-paper hover:bg-paper/5"
+          className="mt-10 inline-flex h-12 items-center border border-paper/30 px-7 text-[13px] font-medium tracking-normal text-paper transition-colors hover:border-paper hover:bg-paper/5"
         >
           Get in touch
         </a>

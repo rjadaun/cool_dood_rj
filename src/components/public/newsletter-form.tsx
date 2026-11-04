@@ -18,10 +18,16 @@ function SubmitButton({ dark }: { dark?: boolean }) {
       aria-label="Subscribe"
       className={cn(
         "inline-flex h-12 w-12 shrink-0 items-center justify-center transition-colors disabled:opacity-60",
-        dark ? "bg-paper text-ink hover:bg-white" : "bg-ink text-paper hover:bg-ink-soft"
+        dark
+          ? "bg-paper text-ink hover:bg-white"
+          : "bg-ink text-paper hover:bg-ink-soft",
       )}
     >
-      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+      {pending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <ArrowRight className="h-4 w-4" />
+      )}
     </button>
   );
 }
@@ -38,7 +44,14 @@ export function NewsletterForm({ dark = false }: { dark?: boolean }) {
 
   return (
     <form action={formAction} className="flex w-full max-w-md items-stretch">
-      <input type="text" name="website" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        className="hidden"
+        aria-hidden
+      />
       <label htmlFor="nl-email" className="sr-only">
         Email address
       </label>
@@ -49,10 +62,10 @@ export function NewsletterForm({ dark = false }: { dark?: boolean }) {
         required
         placeholder="Your email address"
         className={cn(
-          "h-12 w-full border px-4 text-sm outline-none transition-colors placeholder:text-current/50",
+          "h-12 min-w-0 w-full border px-4 text-sm outline-none transition-colors placeholder:text-current/50",
           dark
             ? "border-white/20 bg-transparent text-paper focus:border-white/60"
-            : "border-ink/20 bg-transparent text-ink focus:border-ink"
+            : "border-ink/20 bg-transparent text-ink focus:border-ink",
         )}
       />
       <SubmitButton dark={dark} />

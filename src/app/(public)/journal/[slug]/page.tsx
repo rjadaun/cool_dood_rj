@@ -26,16 +26,20 @@ export async function generateMetadata({
   });
 }
 
-export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
   return (
-    <article className="container-editorial pt-32 md:pt-40">
+    <article className="container-editorial article-page">
       <Link
         href="/journal"
-        className="link-underline inline-flex items-center gap-2 text-[12px] font-medium uppercase tracking-wide text-stone-500"
+        className="link-underline inline-flex items-center gap-2 text-[12px] font-medium tracking-normal text-stone-500"
       >
         <ArrowLeft className="h-4 w-4" /> Journal
       </Link>
@@ -47,18 +51,26 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         <h1 className="mt-4 font-serif text-display-sm font-light leading-[1.05] text-ink md:text-display">
           {post.title}
         </h1>
-        {post.author && <p className="mt-4 text-sm text-stone-500">By {post.author}</p>}
+        {post.author && (
+          <p className="mt-4 text-sm text-stone-500">By {post.author}</p>
+        )}
       </div>
 
       {post.cover && (
-        <div className="relative mx-auto mt-12 aspect-[16/9] max-w-5xl overflow-hidden bg-stone-100">
-          <MediaImage media={post.cover} alt={post.title} priority sizes="100vw" />
+        <div className="relative mx-auto mt-8 max-w-4xl overflow-hidden">
+          <MediaImage
+            fill={false}
+            media={post.cover}
+            alt={post.title}
+            priority
+            sizes="100vw"
+          />
         </div>
       )}
 
       {post.content && (
         <div
-          className="prose-editorial mx-auto mt-14 pb-24"
+          className="prose-editorial mx-auto mt-8 pb-14"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
       )}

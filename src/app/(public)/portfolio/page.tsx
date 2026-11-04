@@ -4,16 +4,19 @@ import { buildPageMetadata } from "@/lib/seo";
 import { getCategories, getPortfolioProjects } from "@/lib/queries/public";
 import { CmsPageIntro } from "@/components/public/cms-page-intro";
 import { PortfolioFilter } from "@/components/public/portfolio-filter";
-import { ProjectCard } from "@/components/public/project-card";
+import { ProjectCollection } from "@/components/public/project-collection";
 import { Pagination } from "@/components/ui/pagination";
 import { EmptyState } from "@/components/ui/misc";
-import { Reveal } from "@/components/shared/reveal";
 import { ImageOff } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildPageMetadata("portfolio", "Portfolio", "Selected fashion, beauty and commercial photography projects.");
+  return buildPageMetadata(
+    "portfolio",
+    "Portfolio",
+    "Selected fashion, beauty and commercial photography projects.",
+  );
 }
 
 export default async function PortfolioPage({
@@ -40,9 +43,17 @@ export default async function PortfolioPage({
 
   return (
     <>
-      <CmsPageIntro slug="portfolio" label="Portfolio" title="Selected work." description="Fashion, beauty and commercial projects." />
-      <section className="container-editorial py-14 md:py-16">
-        <PortfolioFilter categories={categories.map((c) => ({ label: c.name, slug: c.slug }))} active={category} />
+      <CmsPageIntro
+        slug="portfolio"
+        label="Portfolio"
+        title="Selected work."
+        description="Fashion, beauty and commercial projects."
+      />
+      <section className="container-editorial portfolio-content">
+        <PortfolioFilter
+          categories={categories.map((c) => ({ label: c.name, slug: c.slug }))}
+          active={category}
+        />
 
         {projects.length === 0 ? (
           <EmptyState
@@ -52,23 +63,16 @@ export default async function PortfolioPage({
             className="mt-16"
           />
         ) : (
-          <div className="mt-12 grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((project, i) => (
-              <Reveal key={project.id} delay={(i % 3) * 0.06}>
-                <ProjectCard
-                  project={project}
-                  aspect="aspect-[4/5]"
-                  priority={i < 3}
-                  sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw"
-                />
-              </Reveal>
-            ))}
-          </div>
+          <ProjectCollection projects={projects} priority />
         )}
 
         {totalPages > 1 && (
           <div className="mt-16">
-            <Pagination page={page} totalPages={totalPages} hrefForPage={hrefForPage} />
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              hrefForPage={hrefForPage}
+            />
           </div>
         )}
       </section>
