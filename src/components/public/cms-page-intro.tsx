@@ -1,3 +1,4 @@
+import { enquiryLabel } from "@/lib/enquiry";
 import type { PageSection } from "@prisma/client";
 import { getRoutePage } from "@/lib/queries/public";
 import { PageHero } from "./page-hero";
@@ -32,7 +33,7 @@ export function PageSections({ sections }: { sections: PageSection[] }) {
               {section.ctaText && section.ctaUrl && (
                 <div className="mt-8">
                   <ButtonLink href={section.ctaUrl}>
-                    {section.ctaText}
+                    {enquiryLabel(section.ctaUrl, section.ctaText)}
                   </ButtonLink>
                 </div>
               )}

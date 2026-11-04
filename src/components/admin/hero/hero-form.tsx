@@ -7,7 +7,7 @@ import { Field, Input, Textarea, Select } from "@/components/ui/field";
 import { ImageField } from "@/components/admin/media/image-field";
 import { saveHeroSlide } from "@/lib/actions/hero";
 
-type Slide = HeroSlide & { image: Media | null };
+type Slide = HeroSlide & { image: Media | null; mobileImage: Media | null };
 
 export function HeroForm({ slide }: { slide?: Slide }) {
   return (
@@ -20,7 +20,7 @@ export function HeroForm({ slide }: { slide?: Slide }) {
                 <Field label="Category label" htmlFor="label" hint="Small overline, e.g. FASHION / EDITORIAL" error={errors.label}>
                   <Input id="label" name="label" defaultValue={slide?.label ?? ""} placeholder="Fashion / Editorial" />
                 </Field>
-                <Field label="Title" htmlFor="title" required error={errors.title}>
+                <Field label="Title" htmlFor="title" required error={errors.title} hint="Keep it to a short sentence so the photograph has room to breathe.">
                   <Textarea id="title" name="title" defaultValue={slide?.title ?? ""} rows={2} placeholder="Visual stories with a refined perspective." />
                 </Field>
                 <Field label="Description" htmlFor="description" error={errors.description}>
@@ -38,7 +38,7 @@ export function HeroForm({ slide }: { slide?: Slide }) {
                   <Input id="ctaUrl" name="ctaUrl" defaultValue={slide?.ctaUrl ?? ""} placeholder="/portfolio" />
                 </Field>
                 <Field label="Secondary CTA text" htmlFor="ctaSecondary" error={errors.ctaSecondary}>
-                  <Input id="ctaSecondary" name="ctaSecondary" defaultValue={slide?.ctaSecondary ?? ""} placeholder="Work With Me" />
+                  <Input id="ctaSecondary" name="ctaSecondary" defaultValue={slide?.ctaSecondary ?? ""} placeholder="Enquire about a shoot" />
                 </Field>
                 <Field label="Secondary CTA URL" htmlFor="ctaSecondaryUrl" error={errors.ctaSecondaryUrl}>
                   <Input id="ctaSecondaryUrl" name="ctaSecondaryUrl" defaultValue={slide?.ctaSecondaryUrl ?? ""} placeholder="/contact" />
@@ -48,13 +48,40 @@ export function HeroForm({ slide }: { slide?: Slide }) {
           </div>
 
           <div className="space-y-6">
-            <AdminCard title="Image">
-              <ImageField name="imageId" defaultValue={slide?.image ?? null} folder="hero" aspect="aspect-[3/2]" />
+            <AdminCard title="Desktop image">
+              <Field error={errors.imageId}>
+                <ImageField name="imageId" defaultValue={slide?.image ?? null} folder="hero" aspect="aspect-[16/9]" />
+              </Field>
               <div className="mt-4">
                 <Field label="Focal position" htmlFor="focal">
                   <Select id="focal" name="focal" defaultValue={slide?.focal ?? "CENTER"}>
                     {["CENTER", "TOP", "BOTTOM", "LEFT", "RIGHT", "TOP_LEFT", "TOP_RIGHT", "BOTTOM_LEFT", "BOTTOM_RIGHT"].map((f) => (
                       <option key={f} value={f}>{f.replace("_", " ").toLowerCase()}</option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+            </AdminCard>
+
+            <AdminCard title="Mobile portrait image">
+              <p className="mb-4 text-sm text-stone-500">
+                Upload a portrait version for screens below 768px. Leave empty to use the desktop image. Both versions share the slide&apos;s text and timing.
+              </p>
+              <Field error={errors.mobileImageId}>
+                <ImageField
+                  name="mobileImageId"
+                  defaultValue={slide?.mobileImage ?? null}
+                  folder="hero-mobile"
+                  aspect="aspect-[9/16]"
+                  className="mx-auto max-w-[240px]"
+                  hint="Recommended: 1080 × 1920 (9:16), portrait. Leave space near the bottom for the title and buttons."
+                />
+              </Field>
+              <div className="mt-4">
+                <Field label="Mobile focal position" htmlFor="mobileFocal" error={errors.mobileFocal} hint="Keeps the important part of the portrait in view on different phone sizes.">
+                  <Select id="mobileFocal" name="mobileFocal" defaultValue={slide?.mobileFocal ?? "CENTER"}>
+                    {["CENTER", "TOP", "BOTTOM", "LEFT", "RIGHT", "TOP_LEFT", "TOP_RIGHT", "BOTTOM_LEFT", "BOTTOM_RIGHT"].map((f) => (
+                      <option key={f} value={f}>{f.replaceAll("_", " ").toLowerCase()}</option>
                     ))}
                   </Select>
                 </Field>

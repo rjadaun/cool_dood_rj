@@ -7,6 +7,7 @@ import { absoluteUrl } from "@/lib/utils";
 import { getProjectBySlug, getRelatedProjects } from "@/lib/queries/public";
 import { ProjectGallery } from "@/components/public/project-gallery";
 import { ProjectCollection } from "@/components/public/project-collection";
+import { CtaSection } from "@/components/public/sections/cta-section";
 
 export const dynamic = "force-dynamic";
 
@@ -114,6 +115,7 @@ export default async function ProjectPage({
           <ProjectGallery
             images={galleryImages}
             layout={project.galleryLayout}
+            projectTitle={project.title}
           />
         </div>
       )}
@@ -146,7 +148,7 @@ export default async function ProjectPage({
         </section>
       )}
 
-      <div className="pb-10" />
+      <CtaSection heading="Have a shoot in mind?" body="Tell us what you'd like to create." />
     </article>
   );
 }

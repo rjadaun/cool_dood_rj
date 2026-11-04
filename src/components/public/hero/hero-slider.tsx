@@ -5,9 +5,10 @@ import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import type { HeroSlide, Media } from "@prisma/client";
-import { MediaImage } from "@/components/shared/media-image";
+import { HeroPicture } from "./hero-picture";
+import { enquiryLabel } from "@/lib/enquiry";
 
-type Slide = HeroSlide & { image: Media | null };
+type Slide = HeroSlide & { image: Media | null; mobileImage?: Media | null };
 
 export function HeroSlider({ slides }: { slides: Slide[] }) {
   const reduce = useReducedMotion();
@@ -65,18 +66,18 @@ export function HeroSlider({ slides }: { slides: Slide[] }) {
           className="absolute inset-0"
         >
           <motion.div
-            className="absolute inset-0"
+            className="hero-image-motion absolute inset-0"
             initial={kenBurns && !reduce ? { scale: 1.04 } : false}
             animate={kenBurns && !reduce ? { scale: 1.16 } : {}}
             transition={{ duration: (duration + 1500) / 1000, ease: "linear" }}
           >
-            <MediaImage
-              media={active.image}
-              alt={active.title}
+            <HeroPicture
+              image={active.image}
+              mobileImage={active.mobileImage}
+              title={active.title}
               priority={index === 0}
-              sizes="100vw"
               focal={active.focal}
-              className="h-full w-full"
+              mobileFocal={active.mobileFocal}
             />
           </motion.div>
           {/* Overlay: dark gradient bottom + flat tint from slide.overlay */}
@@ -103,7 +104,7 @@ export function HeroSlider({ slides }: { slides: Slide[] }) {
             className="max-w-3xl text-paper"
           >
             {active.label && (
-              <p className="mb-4 text-[11px] font-medium uppercase tracking-label text-paper/80 md:mb-6">
+              <p className="mb-4 text-xs font-medium tracking-normal text-paper/80 md:mb-6">
                 {active.label}
               </p>
             )}
@@ -120,18 +121,18 @@ export function HeroSlider({ slides }: { slides: Slide[] }) {
                 {active.ctaText && active.ctaUrl && (
                   <Link
                     href={active.ctaUrl}
-                    className="group inline-flex h-12 items-center gap-2 bg-paper px-7 text-[13px] font-medium uppercase tracking-wide text-ink transition-colors hover:bg-white"
+                    className="group inline-flex min-h-12 items-center gap-2 bg-paper px-5 py-3 text-[13px] font-medium text-ink transition-colors hover:bg-white"
                   >
-                    {active.ctaText}
+                    {enquiryLabel(active.ctaUrl, active.ctaText)}
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 )}
                 {active.ctaSecondary && active.ctaSecondaryUrl && (
                   <Link
                     href={active.ctaSecondaryUrl}
-                    className="group inline-flex h-12 items-center gap-2 border border-paper/40 px-7 text-[13px] font-medium uppercase tracking-wide text-paper transition-colors hover:border-paper hover:bg-paper/5"
+                    className="group inline-flex min-h-12 items-center gap-2 border border-paper/40 px-5 py-3 text-[13px] font-medium text-paper transition-colors hover:border-paper hover:bg-paper/5"
                   >
-                    {active.ctaSecondary}
+                    {enquiryLabel(active.ctaSecondaryUrl, active.ctaSecondary)}
                     <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Link>
                 )}

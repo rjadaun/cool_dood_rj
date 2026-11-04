@@ -1,3 +1,4 @@
+import { enquiryLabel } from "@/lib/enquiry";
 import Link from "next/link";
 import type { Package, PackageFeature } from "@prisma/client";
 import { SectionHeader } from "./section-header";
@@ -45,7 +46,7 @@ export function PackagesSection({
               ))}
             </ul>
             <Link href={pkg.ctaUrl || "/contact"} className="text-link">
-              {pkg.ctaText || "Enquire about this shoot"}
+              {enquiryLabel(pkg.ctaUrl || "/contact", pkg.ctaText)}
             </Link>
           </article>
         ))}

@@ -55,7 +55,7 @@ test("lightbox opens, navigates, cancels and restores focus and page scrolling",
   try {
     await React.act(() =>
       root.render(
-        React.createElement(ProjectGallery, { images, layout: "MIXED" }),
+        React.createElement(ProjectGallery, { images, layout: "MIXED", projectTitle: "Editorial portraits" }),
       ),
     );
     const trigger =
@@ -68,6 +68,7 @@ test("lightbox opens, navigates, cancels and restores focus and page scrolling",
     assert.equal(dialog.open, true);
     assert.equal(window.document.body.style.overflow, "hidden");
     assert.equal(count(), "1 / 3");
+    assert.equal(dialog.querySelector(".lightbox-project-title")?.textContent, "Editorial portraits");
     await click('[aria-label="Next photograph"]');
     assert.equal(count(), "2 / 3");
     for (const [key, expected] of [

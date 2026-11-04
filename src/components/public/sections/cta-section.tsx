@@ -1,3 +1,4 @@
+import { enquiryLabel } from "@/lib/enquiry";
 import Link from "next/link";
 
 export function CtaSection({
@@ -16,12 +17,12 @@ export function CtaSection({
       <div className="container-editorial contact-band-inner">
         <div>
           <p className="section-label">Commissions & collaborations</p>
-          <h2>{heading || "Let's make something meaningful."}</h2>
+          <h2>{heading || "Have a shoot in mind?"}</h2>
           {body && <p className="contact-band-description">{body}</p>}
         </div>
         <div className="contact-band-links">
           <Link href={ctaUrl || "/contact"} className="public-button">
-            {ctaText || "Get in touch"}
+            {enquiryLabel(ctaUrl || "/contact", ctaText)}
           </Link>
           <Link href="/portfolio" className="text-link">
             View portfolio

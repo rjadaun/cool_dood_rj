@@ -11,9 +11,9 @@ export const getHeroSlides = unstable_cache(
     prisma.heroSlide.findMany({
       where: { status: PUBLISHED },
       orderBy: { sortOrder: "asc" },
-      include: { image: true },
+      include: { image: true, mobileImage: true },
     }),
-  ["hero-slides"],
+  ["hero-slides-responsive-v2"],
   { tags: [TAGS.hero], revalidate: 3600 }
 );
 

@@ -30,6 +30,8 @@ export const heroSlideSchema = idBase.extend({
   ctaSecondary: z.string().max(40).optional().or(z.literal("")),
   ctaSecondaryUrl: optionalUrl,
   imageId: optionalId,
+  mobileImageId: optionalId,
+  mobileFocal: focal.default("CENTER"),
   overlay: z.coerce.number().min(0).max(100).default(45),
   focal: focal.default("CENTER"),
   transition: z.enum(["FADE", "CROSSFADE", "KEN_BURNS", "SLOW_ZOOM"]).default("KEN_BURNS"),

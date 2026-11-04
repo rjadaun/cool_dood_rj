@@ -8,7 +8,7 @@ import { HeroList } from "@/components/admin/hero/hero-list";
 export default async function HeroAdminPage() {
   const slides = await prisma.heroSlide.findMany({
     orderBy: { sortOrder: "asc" },
-    include: { image: true },
+    include: { image: true, mobileImage: true },
   });
 
   return (
@@ -42,6 +42,7 @@ export default async function HeroAdminPage() {
             label: s.label,
             status: s.status,
             imageUrl: s.image?.url ?? null,
+            mobileImageUrl: s.mobileImage?.url ?? null,
           }))}
         />
       )}

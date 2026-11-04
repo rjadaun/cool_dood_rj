@@ -44,3 +44,12 @@ visibility, SEO and all backend actions. No new production dependencies.
 - Production integration audit: 106 checks passed against an isolated disposable database, including public/admin routes, media upload, journal publishing, CMS editing and inquiry submission. No production records were modified.
 - Desktop portfolio screenshot reviewed; row balancing and footer spacing refined from that result. Remaining mobile/tablet and full-page visual QA could not be completed: native browser controls timed out or returned inconsistent screenshots and accessibility state. Automated component tests do not verify rendered geometry or native dialog focus containment.
 - Changes are local and have not been deployed. No dependencies, database models, API handlers or admin components changed in this redesign.
+
+## Mobile hero and portfolio refinements — 4 November 2026
+
+- Added an optional mobile portrait relation and independent focal position to each hero slide, with separate upload controls in the CMS. Responsive picture sources select portraits below 768px and preserve desktop fallback for existing slides. Kept the full-width hero; removed additional zoom cropping on phones.
+- Reduced enquiries to four fields and unified local contact actions as “Enquire about a shoot.” Added named social links on the contact page and footer and an enquiry action after project galleries.
+- Standardized public title, section and card type scales around Georgia headings and Inter body/UI text. Reduced hero label tracking and CTA capitalization; shortened authored defaults without overwriting CMS copy.
+- Preserved natural gallery ratios and image order; normalized mobile gaps, made project titles more prominent, added keyboard focus outlines and project context in the fullscreen viewer, and corrected single-project image sizing.
+- Verification: TypeScript, 24 tests and the production build passed. All 112 isolated production integration checks passed, including portrait upload/save/reload, missing-image feedback, removal/fallback, legacy documents, referenced-media protection and the four-field enquiry submission.
+- Visual review with existing content was blocked by a DNS/network error connecting to the configured database. No production data was changed, no portraits were added to real slides, and these changes have not been deployed.

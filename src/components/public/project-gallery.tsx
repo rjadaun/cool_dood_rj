@@ -13,9 +13,11 @@ type Img = Pick<PortfolioImage, "id" | "caption" | "altText" | "aspect"> & {
 export function ProjectGallery({
   images,
   layout,
+  projectTitle,
 }: {
   images: Img[];
   layout: GalleryLayout;
+  projectTitle?: string;
 }) {
   const [active, setActive] = React.useState<number | null>(null);
   const dialog = React.useRef<HTMLDialogElement>(null);
@@ -134,6 +136,7 @@ export function ProjectGallery({
         {current && (
           <div className="lightbox-inner">
             <div className="lightbox-top">
+              {projectTitle && <p className="lightbox-project-title">{projectTitle}</p>}
               <span aria-live="polite">
                 {active! + 1} / {images.length}
               </span>
@@ -198,7 +201,7 @@ export function ProjectGallery({
                 {current.caption ||
                   current.altText ||
                   current.media.altText ||
-                  "Use the arrows or swipe to explore"}
+                  (images.length > 1 ? "Use the arrows or swipe to explore" : "")}
               </p>
               <button
                 type="button"

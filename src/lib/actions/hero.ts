@@ -25,6 +25,12 @@ export async function saveHeroSlide(_prev: FormResult, formData: FormData): Prom
   }
   const d = parsed.data;
 
+  for (const field of ["imageId", "mobileImageId"] as const) {
+    if (d[field] && !(await prisma.media.findUnique({ where: { id: d[field] }, select: { id: true } }))) {
+      return { ok: false, message: "Please choose an available image.", fieldErrors: { [field]: "This image no longer exists. Choose another image." } };
+    }
+  }
+
   const data = {
     label: nn(d.label),
     title: d.title,
@@ -35,6 +41,8 @@ export async function saveHeroSlide(_prev: FormResult, formData: FormData): Prom
     ctaSecondary: nn(d.ctaSecondary),
     ctaSecondaryUrl: nn(d.ctaSecondaryUrl),
     imageId: nn(d.imageId),
+    mobileImageId: nn(d.mobileImageId),
+    mobileFocal: d.mobileFocal,
     overlay: d.overlay,
     focal: d.focal,
     transition: d.transition,

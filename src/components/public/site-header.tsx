@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { enquiryLabel } from "@/lib/enquiry";
 import { publicNav } from "@/config/nav";
 
 export function SiteHeader({
@@ -64,7 +65,7 @@ export function SiteHeader({
           : undefined
       }
     >
-      {item.label}
+      {enquiryLabel(item.href, item.label)}
     </Link>
   ));
   return (

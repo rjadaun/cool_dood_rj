@@ -1,3 +1,4 @@
+import { enquiryLabel } from "@/lib/enquiry";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
@@ -58,7 +59,7 @@ export default async function ServicesPage() {
                 </ul>
               )}
               <Link href={service.ctaUrl || "/contact"} className="text-link">
-                {service.ctaText || "Enquire"}
+                {enquiryLabel(service.ctaUrl || "/contact", service.ctaText)}
                 <ArrowRight size={16} className="ml-3" />
               </Link>
             </div>

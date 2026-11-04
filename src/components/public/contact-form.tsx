@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { submitInquiry, type ActionResult } from "@/lib/actions/public";
+import { ENQUIRY_LABEL } from "@/lib/enquiry";
 import { Field, Input, Textarea, Select } from "@/components/ui/field";
 
 const initial: ActionResult = { ok: false };
@@ -18,7 +19,7 @@ function Submit() {
       className="group inline-flex h-13 items-center gap-2 bg-ink px-8 py-4 text-[13px] font-medium tracking-normal text-paper transition-colors hover:bg-ink-soft disabled:opacity-60"
     >
       {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-      Send Inquiry
+      {pending ? "Sending enquiry…" : ENQUIRY_LABEL}
       {!pending && (
         <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
       )}
@@ -28,10 +29,8 @@ function Submit() {
 
 export function ContactForm({
   projectTypes,
-  budgets,
 }: {
   projectTypes: string[];
-  budgets: string[];
 }) {
   const [state, formAction] = useActionState(submitInquiry, initial);
   const formRef = useRef<HTMLFormElement>(null);
@@ -100,30 +99,15 @@ export function ContactForm({
             autoComplete="email"
           />
         </Field>
-        <Field label="Phone" htmlFor="phone" error={err.phone}>
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            placeholder="Optional"
-            autoComplete="tel"
-          />
-        </Field>
-        <Field label="Company" htmlFor="company" error={err.company}>
-          <Input
-            id="company"
-            name="company"
-            placeholder="Optional"
-            autoComplete="organization"
-          />
-        </Field>
+      </div>
+      <div>
         <Field
-          label="Project type"
+          label="Shoot type (optional)"
           htmlFor="projectType"
           error={err.projectType}
         >
           <Select id="projectType" name="projectType" defaultValue="">
-            <option value="">Select a type</option>
+            <option value="">Choose a shoot type</option>
             {projectTypes.map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -132,26 +116,6 @@ export function ContactForm({
             <option value="Other">Other</option>
           </Select>
         </Field>
-        <Field label="Budget" htmlFor="budget" error={err.budget}>
-          <Select id="budget" name="budget" defaultValue="">
-            <option value="">Select a range</option>
-            {budgets.map((b) => (
-              <option key={b} value={b}>
-                {b}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <Field
-          label="Preferred date"
-          htmlFor="preferredDate"
-          error={err.preferredDate}
-        >
-          <Input id="preferredDate" name="preferredDate" type="date" />
-        </Field>
-        <Field label="Location" htmlFor="location" error={err.location}>
-          <Input id="location" name="location" placeholder="City / studio" />
-        </Field>
       </div>
 
       <Field label="Message" htmlFor="message" required error={err.message}>
@@ -159,28 +123,16 @@ export function ContactForm({
           id="message"
           name="message"
           required
-          rows={5}
-          placeholder="Tell us about your project…"
+          rows={4}
+          minLength={10}
+          maxLength={4000}
+          placeholder="What would you like to photograph? Share your idea, location and approximate date if you have one."
         />
       </Field>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <Field
-          label="Instagram / website"
-          htmlFor="website"
-          error={err.website}
-        >
-          <Input id="website" name="website" placeholder="Optional" />
-        </Field>
-        <Field
-          label="How did you hear about us?"
-          htmlFor="referral"
-          error={err.referral}
-        >
-          <Input id="referral" name="referral" placeholder="Optional" />
-        </Field>
-      </div>
-
+      <p className="text-sm leading-relaxed text-ink/60">
+        We&apos;ll reply by email. <a href="/privacy-policy" className="underline underline-offset-4">Read our privacy policy</a>
+      </p>
       <Submit />
     </form>
   );

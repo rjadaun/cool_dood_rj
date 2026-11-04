@@ -152,7 +152,8 @@ model Media {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  heroSlides       HeroSlide[]
+  heroSlides       HeroSlide[]        @relation("HeroDesktopImage")
+  mobileHeroSlides HeroSlide[]        @relation("HeroMobileImage")
   categoryCovers   Category[]         @relation("CategoryCover")
   projectCovers    PortfolioProject[] @relation("ProjectCover")
   projectOg        PortfolioProject[] @relation("ProjectOg")
@@ -182,7 +183,10 @@ model HeroSlide {
   ctaSecondary    String?
   ctaSecondaryUrl String?
   imageId         String?       @db.ObjectId
-  image           Media?        @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  image           Media?        @relation("HeroDesktopImage", fields: [imageId], references: [id], onDelete: SetNull)
+  mobileImageId   String?       @db.ObjectId
+  mobileImage     Media?        @relation("HeroMobileImage", fields: [mobileImageId], references: [id], onDelete: SetNull)
+  mobileFocal     FocalPosition @default(CENTER)
   overlay         Int           @default(45)
   focal           FocalPosition @default(CENTER)
   transition      Transition    @default(KEN_BURNS)

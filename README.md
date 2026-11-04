@@ -258,3 +258,24 @@ MongoDB binary. Otherwise mongodb-memory-server may download MongoDB on first us
 No live database reset or seed is required for these code changes.
 
 See `AUDIT.md` for changes, test coverage and deployment verification limits.
+
+## Hero images for phones
+
+In **Admin → Hero Slides → Edit**, keep the landscape image under **Desktop image**
+and upload a portrait under **Mobile portrait image**. Recommended sizes are
+2560 × 1440 for desktop and 1080 × 1920 for mobile. Leave room near the bottom of
+the portrait for the slide text and buttons; use **Mobile focal position** to keep
+the subject visible across phone sizes.
+
+Screens below 768px use the portrait. An empty mobile field falls back to the
+desktop image and its focal position. Both versions share slide copy, ordering,
+visibility and timing, and the full-width hero layout is preserved. The browser
+selects the appropriate image source; phones do not preload the desktop image.
+
+`npm run build` regenerates Prisma Client for the new optional mobile-image
+relation. Existing MongoDB slides remain readable without a backfill or reset.
+
+The public enquiry form now contains name, email, optional shoot type and message.
+Contact actions use “Enquire about a shoot”; custom external CTA destinations and
+their labels remain editable. Contact details and named social links appear on
+the contact page and footer.

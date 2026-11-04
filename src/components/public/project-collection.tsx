@@ -34,7 +34,9 @@ export function ProjectCollection({
               key={project.id}
               project={project}
               sizes={
-                row.length === 3
+                row.length === 1
+                  ? "(max-width: 640px) 100vw, 90vw"
+                  : row.length === 3
                   ? "(max-width: 640px) 100vw, 40vw"
                   : "(max-width: 640px) 100vw, 60vw"
               }

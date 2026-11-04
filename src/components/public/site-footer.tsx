@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/queries/settings";
 import { getSocialLinks } from "@/lib/queries/public";
 import { SocialIcon } from "./social-icon";
 import { BackToTop } from "./back-to-top";
+import { ENQUIRY_LABEL } from "@/lib/enquiry";
 
 export async function SiteFooter() {
   const [settings, socials] = await Promise.all([
@@ -28,6 +29,9 @@ export async function SiteFooter() {
               </p>
             )}
             <div className="mt-8 space-y-1 text-sm text-paper/60">
+              <Link href="/contact" className="mb-4 inline-flex min-h-11 items-center border-b border-paper/40 text-paper">
+                {ENQUIRY_LABEL}
+              </Link>
               {settings.email && (
                 <a
                   href={`mailto:${settings.email}`}
@@ -84,9 +88,10 @@ export async function SiteFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.platform.toLowerCase()}
-                  className="flex h-10 w-10 items-center justify-center border border-white/15 text-paper/70 transition-colors hover:border-white/50 hover:text-paper"
+                  className="flex min-h-11 items-center justify-center gap-2 border border-white/15 px-3 text-xs text-paper/70 transition-colors hover:border-white/50 hover:text-paper"
                 >
                   <SocialIcon platform={s.platform} className="h-4 w-4" />
+                  {s.platform.charAt(0) + s.platform.slice(1).toLowerCase()}
                 </a>
               ))}
             </div>
