@@ -45,7 +45,7 @@ export function PageForm({ page }: { page: Page & { image: Media | null } }) {
           </div>
 
           <div className="space-y-6">
-            <AdminCard title="Feature image">
+            <AdminCard title={page.slug === "about" ? "Photographer portrait" : "Feature image"}>
               <ImageField
                 name="imageId"
                 defaultValue={page.image}
@@ -55,7 +55,9 @@ export function PageForm({ page }: { page: Page & { image: Media | null } }) {
               <p className="mt-3 text-xs text-stone-500">
                 {page.slug === "home"
                   ? "Shown beside the introduction section on the homepage."
-                  : "Optional image shown on this page."}
+                  : page.slug === "about"
+                    ? "Upload or select your portrait for the About page. The full image is displayed without cropping. Without a portrait, a published portfolio image is used. The supporting photograph follows your portfolio order."
+                    : "Optional image shown on this page."}
               </p>
             </AdminCard>
 

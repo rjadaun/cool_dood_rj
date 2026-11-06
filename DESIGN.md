@@ -1,5 +1,59 @@
 # Rjadaun public website design
 
+## About-page direction — 4 November 2026
+
+An artist profile, anchored by the photographer's own images. The current About
+page still contains the original seed biography and a Picsum placeholder, so those
+defaults must not masquerade as a personal portrait or a finished biography.
+
+- Palette: gallery white `#fafafa`, white `#ffffff`, ink `#161616`, secondary grey
+  `#636363`, pale silver `#e4e4e4`; photographs carry the colour.
+- Type: existing Georgia for the opening title and biography lead; Inter for body,
+  captions and actions. One expressive opening, restrained supporting typography.
+- Layout: a left-aligned title and introduction paired with an uncropped photograph;
+  a smaller, distinctly captioned portfolio image creates the second beat. A readable
+  biography follows, then compact credentials and a direct invitation to enquire.
+
+```text
+About / name              [ large photograph ]
+Behind the                [                  ]
+photographs.              [                  ]
+Introduction / location   [                  ]
+Enquiry / work links      caption
+[ smaller work image ]    Biography
+caption                   Experience
+Clients                   Recognition
+                 Enquiry invitation
+```
+
+Plan critique: a standard portrait/text split followed by repeated homepage modules
+would reproduce the generic page. Use a connected opening and biography composition,
+with photographs and their captions in the reading flow; make credentials quieter.
+Do not invent a personal history or generate a substitute photographer portrait.
+Use a real published portfolio cover until a genuine About image is configured.
+Preserve all custom CMS content, sections, visibility and metadata. Starter copy gets
+a restrained presentation fallback without writing to the database.
+
+About implementation review:
+
+- Uses the existing published Beauty and Product & Lifestyle images with accurate
+  portfolio captions. The configured About portrait takes priority when supplied;
+  the original Picsum seed image is excluded. Seed client images render as client
+  names instead of random photographs. Custom imagery and copy are retained.
+- The existing admin image picker is labelled “Photographer portrait” for About,
+  with guidance for full-image display and the portfolio fallback. No schema or
+  upload changes are required.
+- Dedicated CSS module isolates the responsive composition from other pages.
+  Biography, experience, clients, recognition and enquiry use the same aligned grid.
+- Verification: TypeScript, production build, 24 unit/component tests and 114 isolated
+  production integration checks passed. Added checks verify custom About copy/SEO,
+  portrait saving and removal with portfolio fallback. Lint has no errors; two existing
+  warnings remain in the unrelated `hero-picture.tsx` component.
+- Confirmed HTTP 200 and server-rendered real CMS content, correct portfolio image
+  references and absence of starter instructions. Final browser visual review was
+  deferred at the user's request to finish with code checks. No production content
+  was edited and no deployment was made.
+
 ## Direction
 
 A photographic contact sheet, with the scale and clarity of an exhibition catalogue.
